@@ -47,7 +47,7 @@ class Root;
 class Camera;
 class RaySceneQuery;
 class ParticleSystem;
-}
+} // namespace Ogre
 
 namespace ros
 {
@@ -60,7 +60,6 @@ class PropertyTreeWidget;
 
 namespace rviz
 {
-
 class Display;
 class DisplayContext;
 class ViewController;
@@ -73,46 +72,76 @@ class QtOgreRenderWindow;
  * the DisplayContext (which further forwards them to the active
  * Tool, etc.)
  */
-class RenderPanel: public QObject, public Ogre::SceneManager::Listener
+class RenderPanel : public QObject, public Ogre::SceneManager::Listener
 {
-Q_OBJECT
+  Q_OBJECT
 public:
   /** Constructor.  Ogre::Root::createRenderWindow() is called within. */
-  RenderPanel( QtOgreRenderWindow* render_window, QObject* parent = 0 );
-  virtual ~RenderPanel();
+  RenderPanel(QtOgreRenderWindow* render_window, QObject* parent = 0);
+  ~RenderPanel() override;
 
   /** This sets up the Ogre::Camera for this widget. */
   void initialize(Ogre::SceneManager* scene_manager, DisplayContext* manager);
 
-  DisplayContext* getManager() { return context_; }
+  DisplayContext* getManager()
+  {
+    return context_;
+  }
 
-  ViewController* getViewController() { return view_controller_; }
+  ViewController* getViewController()
+  {
+    return view_controller_;
+  }
 
   /// Pass through render window functions
-  Ogre::Viewport* getViewport() const { return render_window_->getViewport(); }
-  Ogre::RenderWindow* getRenderWindow() const { return render_window_->getRenderWindow(); }
-  Ogre::Camera* getCamera() const { return render_window_->getCamera(); }
-  void setAutoRender(bool auto_render) { render_window_->setAutoRender(auto_render); }
-  void setBackgroundColor(Ogre::ColourValue color) { render_window_->setBackgroundColor(color); }
-  void setOverlaysEnabled(bool enabled) { render_window_->setOverlaysEnabled(enabled); }
+  Ogre::Viewport* getViewport() const
+  {
+    return render_window_->getViewport();
+  }
+  Ogre::RenderWindow* getRenderWindow() const
+  {
+    return render_window_->getRenderWindow();
+  }
+  Ogre::Camera* getCamera() const
+  {
+    return render_window_->getCamera();
+  }
+  void setAutoRender(bool auto_render)
+  {
+    render_window_->setAutoRender(auto_render);
+  }
+  void setBackgroundColor(Ogre::ColourValue color)
+  {
+    render_window_->setBackgroundColor(color);
+  }
+  void setOverlaysEnabled(bool enabled)
+  {
+    render_window_->setOverlaysEnabled(enabled);
+  }
 
   /** @brief Set the ViewController which should control the camera
    * position for this view. */
-  void setViewController( ViewController* controller );
+  void setViewController(ViewController* controller);
 
   /** Show the given menu as a context menu, positioned based on the
    * current mouse position.  This can be called from any thread. */
-  void showContextMenu( boost::shared_ptr<QMenu> menu );
+  void showContextMenu(boost::shared_ptr<QMenu> menu);
 
   /** Return true if the context menu for this panel is visible */
   bool contextMenuVisible();
 
-  virtual void sceneManagerDestroyed( Ogre::SceneManager* source );
+  void sceneManagerDestroyed(Ogre::SceneManager* source) override;
 
-  void setCursor(const QCursor &cursor);
+  /** Return true if moving the mouse within this widget should set keyboard focus */
+  bool getFocusOnMouseMove() const;
+
+  /** Set to true if moving the mouse within this widget should set keyboard focus, default true */
+  void setFocusOnMouseMove(bool enabled);
+
+  void setCursor(const QCursor& cursor);
   double getWindowPixelRatio();
-  QPoint mapFromGlobal(const QPoint &point) const;
-  QPoint mapToGlobal(const QPoint &point) const;
+  QPoint mapFromGlobal(const QPoint& point) const;
+  QPoint mapToGlobal(const QPoint& point) const;
 
   /**
    * @brief Triggers rendering from the render window. This function must be used for QtQuick
@@ -122,17 +151,18 @@ public:
 
 protected:
   /// Called when any mouse event happens inside the render window
-  void onRenderWindowMouseEvents( QMouseEvent* event );
+  void onRenderWindowMouseEvents(QMouseEvent* event);
 
   // daisy chained events from render window
-  void onLeaveEvent ( QEvent * event );
-  void onWheelEvent( QWheelEvent* event );
-  void onKeyPressEvent( QKeyEvent* event );
-  void onContextMenuEvent( QContextMenuEvent* event );
+  void onLeaveEvent(QEvent* event);
+  void onWheelEvent(QWheelEvent* event);
+  void onKeyPressEvent(QKeyEvent* event);
+  void onContextMenuEvent(QContextMenuEvent* event);
 
   // Mouse handling
-  int mouse_x_;                                           ///< X position of the last mouse event
-  int mouse_y_;                                           ///< Y position of the last mouse event
+  int mouse_x_;              ///< X position of the last mouse event
+  int mouse_y_;              ///< Y position of the last mouse event
+  bool focus_on_mouse_move_; ///< a moving the mouse catches keyboard focus
 
   DisplayContext* context_;
   Ogre::SceneManager* scene_manager_;
@@ -149,11 +179,9 @@ protected:
   Display* display_;
 
 private Q_SLOTS:
-  void sendMouseMoveEvent();
   void onContextMenuHide();
 
 private:
-  QTimer* fake_mouse_move_event_timer_;
   Ogre::Camera* default_camera_; ///< A default camera created in initialize().
   QtOgreRenderWindow* render_window_;
 };
@@ -161,4 +189,3 @@ private:
 } // namespace rviz
 
 #endif
-

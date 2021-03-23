@@ -42,7 +42,6 @@
 
 namespace rviz
 {
-
 typedef uint32_t CollObjectHandle;
 typedef std::vector<CollObjectHandle> V_CollObject;
 typedef std::vector<V_CollObject> VV_CollObject;
@@ -53,8 +52,7 @@ typedef std::vector<uint64_t> V_uint64;
 
 struct Picked
 {
-  Picked(CollObjectHandle _handle = 0 )
-  : handle(_handle), pixel_count(1)
+  Picked(CollObjectHandle _handle = 0) : handle(_handle), pixel_count(1)
   {
   }
 
@@ -68,7 +66,7 @@ typedef boost::unordered_map<CollObjectHandle, Picked> M_Picked;
 inline uint32_t colorToHandle(Ogre::PixelFormat fmt, uint32_t col)
 {
   uint32_t handle = 0;
-  if (fmt == Ogre::PF_A8R8G8B8 || fmt == Ogre::PF_X8R8G8B8)
+  if (fmt == Ogre::PF_A8R8G8B8 || fmt == Ogre::PF_X8R8G8B8 || fmt == Ogre::PF_R8G8B8)
   {
     handle = col & 0x00ffffff;
   }
@@ -84,13 +82,12 @@ inline uint32_t colorToHandle(Ogre::PixelFormat fmt, uint32_t col)
   return handle;
 }
 
-inline CollObjectHandle colorToHandle( const Ogre::ColourValue & color )
+inline CollObjectHandle colorToHandle(const Ogre::ColourValue& color)
 {
   return (int(color.r * 255) << 16) | (int(color.g * 255) << 8) | int(color.b * 255);
 }
 
 
-
-}
+} // namespace rviz
 
 #endif

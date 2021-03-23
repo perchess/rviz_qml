@@ -31,33 +31,33 @@
 
 #include "ros/ros.h"
 
-#include "rviz/ogre_helpers/qt_widget_ogre_render_window.h"
+#include <rviz/ogre_helpers/qt_widget_ogre_render_window.h>
 
-#include "rviz/visualization_manager.h"
-#include "rviz/render_panel.h"
-#include "rviz/displays_panel.h"
+#include <rviz/visualization_manager.h>
+#include <rviz/render_panel.h>
+#include <rviz/displays_panel.h>
 
 using namespace rviz;
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
-  QApplication app( argc, argv );
-  ros::init( argc, argv, "render_panel_test" );
+  QApplication app(argc, argv);
+  ros::init(argc, argv, "render_panel_test");
 
   DisplaysPanel* displays_panel = new DisplaysPanel;
   QtWidgetOgreRenderWindow* render_window = new QtWidgetOgreRenderWindow();
-  RenderPanel* render_panel = new RenderPanel( render_window );
-  VisualizationManager* vman = new VisualizationManager( render_panel );
+  RenderPanel* render_panel = new RenderPanel(render_window);
+  VisualizationManager* vman = new VisualizationManager(render_panel);
 
-  render_panel->initialize( vman->getSceneManager(), vman );
-  displays_panel->initialize( vman );
+  render_panel->initialize(vman->getSceneManager(), vman);
+  displays_panel->initialize(vman);
   vman->initialize();
   vman->startUpdate();
 
   render_window->show();
   displays_panel->show();
 
-  vman->createDisplay( "rviz/Grid", "My Grid", true );
+  vman->createDisplay("rviz/Grid", "My Grid", true);
 
   return app.exec();
 }

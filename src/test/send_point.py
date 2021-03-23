@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import roslib; roslib.load_manifest('rviz')
 from geometry_msgs.msg import PointStamped
 import math
 import rospy
@@ -14,9 +13,9 @@ t = 0
 while not rospy.is_shutdown():
 
    p = PointStamped()
-   p.header.frame_id = "/base_link"
+   p.header.frame_id = "base_link"
    p.header.stamp = rospy.Time.now()
-   
+
    r = 5.0
    p.point.x = r * math.cos( t )
    p.point.y = r * math.sin( t )

@@ -32,31 +32,23 @@
 
 #include <ros/time.h>
 
-#include "rviz/default_plugin/point_cloud_common.h"
-#include "rviz/default_plugin/point_cloud_transformers.h"
-#include "rviz/display_context.h"
-#include "rviz/frame_manager.h"
-#include "rviz/ogre_helpers/point_cloud.h"
-#include "rviz/properties/int_property.h"
-#include "rviz/validate_floats.h"
+#include <rviz/default_plugin/point_cloud_common.h>
+#include <rviz/default_plugin/point_cloud_transformers.h>
+#include <rviz/display_context.h>
+#include <rviz/frame_manager.h>
+#include <rviz/ogre_helpers/point_cloud.h>
+#include <rviz/properties/int_property.h>
+#include <rviz/validate_floats.h>
 
 #include "point_cloud2_display.h"
 
 namespace rviz
 {
-
-PointCloud2Display::PointCloud2Display()
-  : point_cloud_common_( new PointCloudCommon( this ))
+PointCloud2Display::PointCloud2Display() : point_cloud_common_(new PointCloudCommon(this))
 {
-  queue_size_property_ = new IntProperty( "Queue Size", 10,
-                                          "Advanced: set the size of the incoming PointCloud2 message queue. "
-                                          " Increasing this is useful if your incoming TF data is delayed significantly "
-                                          "from your PointCloud2 data, but it can greatly increase memory usage if the messages are big.",
-                                          this, SLOT( updateQueueSize() ));
-
   // PointCloudCommon sets up a callback queue with a thread for each
   // instance.  Use that for processing incoming messages.
-  update_nh_.setCallbackQueue( point_cloud_common_->getCallbackQueue() );
+  update_nh_.setCallbackQueue(point_cloud_common_->getCallbackQueue());
 }
 
 PointCloud2Display::~PointCloud2Display()
@@ -67,15 +59,10 @@ PointCloud2Display::~PointCloud2Display()
 void PointCloud2Display::onInitialize()
 {
   MFDClass::onInitialize();
-  point_cloud_common_->initialize( context_, scene_node_ );
+  point_cloud_common_->initialize(context_, scene_node_);
 }
 
-void PointCloud2Display::updateQueueSize()
-{
-  tf_filter_->setQueueSize( (uint32_t) queue_size_property_->getInt() );
-}
-
-void PointCloud2Display::processMessage( const sensor_msgs::PointCloud2ConstPtr& cloud )
+void PointCloud2Display::processMessage(const sensor_msgs::PointCloud2ConstPtr& cloud)
 {
   // Filter any nan values out of the cloud.  Any nan values that make it through to PointCloudBase
   // will get their points put off in lala land, but it means they still do get processed/rendered
@@ -96,12 +83,13 @@ void PointCloud2Display::processMessage( const sensor_msgs::PointCloud2ConstPtr&
   const uint32_t point_step = cloud->point_step;
   const size_t point_count = cloud->width * cloud->height;
 
-  if( point_count * point_step != cloud->data.size() )
+  if (point_count * point_step != cloud->data.size())
   {
     std::stringstream ss;
     ss << "Data size (" << cloud->data.size() << " bytes) does not match width (" << cloud->width
-       << ") times height (" << cloud->height << ") times point_step (" << point_step << ").  Dropping message.";
-    setStatusStd( StatusProperty::Error, "Message", ss.str() );
+       << ") times height (" << cloud->height << ") times point_step (" << point_step
+       << ").  Dropping message.";
+    setStatusStd(StatusProperty::Error, "Message", ss.str());
     return;
   }
 
@@ -110,9 +98,11 @@ void PointCloud2Display::processMessage( const sensor_msgs::PointCloud2ConstPtr&
   if (point_count == 0)
   {
     output_count = 0;
-  } else {
+  }
+  else
+  {
     uint8_t* output_ptr = &filtered->data.front();
-    const uint8_t* ptr = &cloud->data.front(), *ptr_end = &cloud->data.back(), *ptr_init;
+    const uint8_t *ptr = &cloud->data.front(), *ptr_end = &cloud->data.back(), *ptr_init;
     size_t points_to_copy = 0;
     for (; ptr < ptr_end; ptr += point_step)
     {
@@ -137,8 +127,8 @@ void PointCloud2Display::processMessage( const sensor_msgs::PointCloud2ConstPtr&
         if (points_to_copy)
         {
           // Copy all the points that need to be copied
-          memcpy(output_ptr, ptr_init, point_step*points_to_copy);
-          output_ptr += point_step*points_to_copy;
+          memcpy(output_ptr, ptr_init, point_step * points_to_copy);
+          output_ptr += point_step * points_to_copy;
           points_to_copy = 0;
         }
       }
@@ -146,8 +136,8 @@ void PointCloud2Display::processMessage( const sensor_msgs::PointCloud2ConstPtr&
     // Don't forget to flush what needs to be copied
     if (points_to_copy)
     {
-      memcpy(output_ptr, ptr_init, point_step*points_to_copy);
-      output_ptr += point_step*points_to_copy;
+      memcpy(output_ptr, ptr_init, point_step * points_to_copy);
+      output_ptr += point_step * points_to_copy;
     }
     output_count = (output_ptr - &filtered->data.front()) / point_step;
   }
@@ -161,13 +151,13 @@ void PointCloud2Display::processMessage( const sensor_msgs::PointCloud2ConstPtr&
   filtered->point_step = point_step;
   filtered->row_step = output_count;
 
-  point_cloud_common_->addMessage( filtered );
+  point_cloud_common_->addMessage(filtered);
 }
 
 
-void PointCloud2Display::update( float wall_dt, float ros_dt )
+void PointCloud2Display::update(float wall_dt, float ros_dt)
 {
-  point_cloud_common_->update( wall_dt, ros_dt );
+  point_cloud_common_->update(wall_dt, ros_dt);
 }
 
 void PointCloud2Display::reset()
@@ -179,4 +169,4 @@ void PointCloud2Display::reset()
 } // namespace rviz
 
 #include <pluginlib/class_list_macros.hpp>
-PLUGINLIB_EXPORT_CLASS( rviz::PointCloud2Display, rviz::Display )
+PLUGINLIB_EXPORT_CLASS(rviz::PointCloud2Display, rviz::Display)

@@ -26,7 +26,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
- /*
+/*
  * measure_tool.h
  *
  *  Created on: Aug 8, 2012
@@ -36,31 +36,31 @@
 #ifndef MEASURE_TOOL_H_
 #define MEASURE_TOOL_H_
 
-#include "rviz/tool.h"
+#include <rviz/tool.h>
 
 #include <OgreVector3.h>
 
 namespace rviz
 {
-
 class Line;
 
 class MeasureTool : public Tool
 {
 public:
   MeasureTool();
-  virtual
-  ~MeasureTool();
 
-  virtual void onInitialize();
+  ~MeasureTool() override;
 
-  virtual void activate();
-  virtual void deactivate();
+  void onInitialize() override;
 
-  virtual int processMouseEvent( ViewportMouseEvent& event );
+  void activate() override;
+  void deactivate() override;
+
+  int processMouseEvent(ViewportMouseEvent& event) override;
+
 private:
-
-  enum {
+  enum
+  {
     START,
     END
   } state_;

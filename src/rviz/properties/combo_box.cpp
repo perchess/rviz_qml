@@ -27,13 +27,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "rviz/properties/combo_box.h"
+#include <rviz/properties/combo_box.h>
 
 namespace rviz
 {
-
-ComboBox::ComboBox( QWidget* parent )
-  : QComboBox( parent )
+ComboBox::ComboBox(QWidget* parent) : QComboBox(parent)
 {
 }
 

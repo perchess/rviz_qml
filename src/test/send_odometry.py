@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import roslib; roslib.load_manifest('rviz')
 from nav_msgs.msg import Odometry
 import rospy
 
@@ -13,9 +12,9 @@ y = 0
 while not rospy.is_shutdown():
 
    odo = Odometry()
-   odo.header.frame_id = "/base_link"
+   odo.header.frame_id = "base_link"
    odo.header.stamp = rospy.Time.now()
-   
+
    odo.pose.pose.position.x = 0
    odo.pose.pose.position.y = y
    odo.pose.pose.position.z = 0

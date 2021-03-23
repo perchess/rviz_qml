@@ -29,16 +29,16 @@
 
 #include <QApplication>
 
-#include "rviz/properties/line_edit_with_button.h"
+#include <rviz/properties/line_edit_with_button.h>
 
 using namespace rviz;
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   QApplication app(argc, argv);
 
   LineEditWithButton lewb;
-  lewb.resize( 200, 50 );
+  lewb.resize(200, 50);
   lewb.show();
 
   return app.exec();

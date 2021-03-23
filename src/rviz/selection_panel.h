@@ -30,20 +30,19 @@
 #ifndef RVIZ_SELECTION_PANEL_H
 #define RVIZ_SELECTION_PANEL_H
 
-#include "rviz/panel.h"
+#include <rviz/panel.h>
 
 namespace rviz
 {
-
 class PropertyTreeWidget;
 
-class SelectionPanel: public Panel
+class SelectionPanel : public Panel
 {
-Q_OBJECT
+  Q_OBJECT
 public:
-  SelectionPanel( QWidget* parent = 0 );
+  SelectionPanel(QWidget* parent = nullptr);
 
-  virtual void onInitialize();
+  void onInitialize() override;
 
 private:
   PropertyTreeWidget* tree_widget_;
@@ -52,4 +51,3 @@ private:
 } // namespace rviz
 
 #endif
-

@@ -30,13 +30,13 @@
 #ifndef RVIZ_GRID_DISPLAY_H
 #define RVIZ_GRID_DISPLAY_H
 
-#include "rviz/properties/color_property.h"
-#include "rviz/properties/float_property.h"
-#include "rviz/properties/int_property.h"
-#include "rviz/properties/vector_property.h"
-#include "rviz/properties/enum_property.h"
-#include "rviz/properties/tf_frame_property.h"
-#include "rviz/display.h"
+#include <rviz/properties/color_property.h>
+#include <rviz/properties/float_property.h>
+#include <rviz/properties/int_property.h>
+#include <rviz/properties/vector_property.h>
+#include <rviz/properties/enum_property.h>
+#include <rviz/properties/tf_frame_property.h>
+#include <rviz/display.h>
 
 namespace rviz
 {
@@ -50,7 +50,7 @@ class Grid;
  */
 class GridDisplay : public Display
 {
-Q_OBJECT
+  Q_OBJECT
 public:
   enum Plane
   {
@@ -60,11 +60,11 @@ public:
   };
 
   GridDisplay();
-  virtual ~GridDisplay();
+  ~GridDisplay() override;
 
   // Overrides from Display
-  virtual void onInitialize();
-  virtual void update(float dt, float ros_dt);
+  void onInitialize() override;
+  void update(float dt, float ros_dt) override;
 
 private Q_SLOTS:
   void updateCellCount();
@@ -77,7 +77,7 @@ private Q_SLOTS:
   void updateStyle();
 
 private:
-  Grid* grid_;            ///< Handles actually drawing the grid
+  Grid* grid_; ///< Handles actually drawing the grid
 
   TfFrameProperty* frame_property_;
   IntProperty* cell_count_property_;

@@ -2,18 +2,18 @@
 
 #include "sensor_msgs/Image.h"
 
-int main( int argc, char** argv )
+int main(int argc, char** argv)
 {
-  ros::init( argc, argv, "image_test" );
+  ros::init(argc, argv, "image_test");
 
   ros::NodeHandle n;
 
-  ros::Publisher rgb_pub = n.advertise<sensor_msgs::Image>( "red_image", 0 );
+  ros::Publisher rgb_pub = n.advertise<sensor_msgs::Image>("red_image", 0);
 
   ros::Duration(0.1).sleep();
 
   sensor_msgs::Image red_image;
-  red_image.header.frame_id = "/base_link";
+  red_image.header.frame_id = "base_link";
   red_image.header.stamp = ros::Time::now();
   red_image.height = 100;
   red_image.width = 100;

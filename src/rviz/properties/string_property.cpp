@@ -27,18 +27,18 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "rviz/properties/string_property.h"
+#include <rviz/properties/string_property.h>
 
 namespace rviz
 {
-
-StringProperty::StringProperty( const QString& name,
-                                const QString& default_value,
-                                const QString& description,
-                                Property* parent,
-                                const char *changed_slot,
-                                QObject* receiver )
-  : Property( name, default_value, description, parent, changed_slot, receiver )
-{}
+StringProperty::StringProperty(const QString& name,
+                               const QString& default_value,
+                               const QString& description,
+                               Property* parent,
+                               const char* changed_slot,
+                               QObject* receiver)
+  : Property(name, default_value, description, parent, changed_slot, receiver)
+{
+}
 
 } // end namespace rviz

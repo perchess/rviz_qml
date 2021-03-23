@@ -30,8 +30,9 @@
 #include "line_strip_marker.h"
 
 #include "marker_selection_handler.h"
-#include "rviz/default_plugin/marker_display.h"
-#include "rviz/display_context.h"
+#include <rviz/default_plugin/marker_display.h>
+#include <rviz/display_context.h>
+#include <rviz/validate_floats.h>
 
 #include <rviz/ogre_helpers/billboard_line.h>
 
@@ -41,10 +42,10 @@
 
 namespace rviz
 {
-
-LineStripMarker::LineStripMarker(MarkerDisplay* owner, DisplayContext* context, Ogre::SceneNode* parent_node)
-: MarkerBase(owner, context, parent_node)
-, lines_(0)
+LineStripMarker::LineStripMarker(MarkerDisplay* owner,
+                                 DisplayContext* context,
+                                 Ogre::SceneNode* parent_node)
+  : MarkerBase(owner, context, parent_node), lines_(nullptr)
 {
 }
 
@@ -53,7 +54,8 @@ LineStripMarker::~LineStripMarker()
   delete lines_;
 }
 
-void LineStripMarker::onNewMessage(const MarkerConstPtr& old_message, const MarkerConstPtr& new_message)
+void LineStripMarker::onNewMessage(const MarkerConstPtr& /*old_message*/,
+                                   const MarkerConstPtr& new_message)
 {
   ROS_ASSERT(new_message->type == visualization_msgs::Marker::LINE_STRIP);
 
@@ -64,12 +66,18 @@ void LineStripMarker::onNewMessage(const MarkerConstPtr& old_message, const Mark
 
   Ogre::Vector3 pos, scale;
   Ogre::Quaternion orient;
-  transform(new_message, pos, orient, scale);
+  if (!transform(new_message, pos, orient, scale))
+  {
+    scene_node_->setVisible(false);
+    return;
+  }
 
+  scene_node_->setVisible(true);
   setPosition(pos);
   setOrientation(orient);
   lines_->setScale(scale);
-  lines_->setColor(new_message->color.r, new_message->color.g, new_message->color.b, new_message->color.a);
+  lines_->setColor(new_message->color.r, new_message->color.g, new_message->color.b,
+                   new_message->color.a);
 
   lines_->clear();
   if (new_message->points.empty())
@@ -85,16 +93,28 @@ void LineStripMarker::onNewMessage(const MarkerConstPtr& old_message, const Mark
   size_t i = 0;
   std::vector<geometry_msgs::Point>::const_iterator it = new_message->points.begin();
   std::vector<geometry_msgs::Point>::const_iterator end = new_message->points.end();
-  for ( ; it != end; ++it, ++i )
+  for (; it != end; ++it, ++i)
   {
     const geometry_msgs::Point& p = *it;
 
-    Ogre::Vector3 v( p.x, p.y, p.z );
+    Ogre::Vector3 v(p.x, p.y, p.z);
+    if (!validateFloats(p))
+    {
+      ROS_WARN("Marker '%s/%d': invalid point[%zu] (%.2f, %.2f, %.2f)", new_message->ns.c_str(),
+               new_message->id, i, p.x, p.y, p.z);
+      continue;
+    }
 
     Ogre::ColourValue c;
     if (has_per_point_color)
     {
       const std_msgs::ColorRGBA& color = new_message->colors[i];
+      if (!validateFloats(color))
+      {
+        ROS_WARN("Marker '%s/%d': invalid color[%zu] (%.2f, %.2f, %.2f, %.2f)", new_message->ns.c_str(),
+                 new_message->id, i, color.r, color.g, color.b, color.a);
+        continue;
+      }
       c.r = color.r;
       c.g = color.g;
       c.b = color.b;
@@ -108,18 +128,18 @@ void LineStripMarker::onNewMessage(const MarkerConstPtr& old_message, const Mark
       c.a = new_message->color.a;
     }
 
-    lines_->addPoint( v, c );
+    lines_->addPoint(v, c);
   }
 
-  handler_.reset( new MarkerSelectionHandler( this, MarkerID( new_message->ns, new_message->id ), context_ ));
-  handler_->addTrackedObjects( lines_->getSceneNode() );
+  handler_.reset(new MarkerSelectionHandler(this, MarkerID(new_message->ns, new_message->id), context_));
+  handler_->addTrackedObjects(lines_->getSceneNode());
 }
 
 S_MaterialPtr LineStripMarker::getMaterials()
 {
   S_MaterialPtr materials;
-  materials.insert( lines_->getMaterial() );
+  materials.insert(lines_->getMaterial());
   return materials;
 }
 
-}
+} // namespace rviz

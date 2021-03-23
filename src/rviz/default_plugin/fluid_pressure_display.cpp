@@ -32,31 +32,23 @@
 
 #include <ros/time.h>
 
-#include "rviz/default_plugin/point_cloud_common.h"
-#include "rviz/default_plugin/point_cloud_transformers.h"
-#include "rviz/display_context.h"
-#include "rviz/frame_manager.h"
-#include "rviz/ogre_helpers/point_cloud.h"
-#include "rviz/properties/int_property.h"
-#include "rviz/validate_floats.h"
+#include <rviz/default_plugin/point_cloud_common.h>
+#include <rviz/default_plugin/point_cloud_transformers.h>
+#include <rviz/display_context.h>
+#include <rviz/frame_manager.h>
+#include <rviz/ogre_helpers/point_cloud.h>
+#include <rviz/properties/int_property.h>
+#include <rviz/validate_floats.h>
 
 #include "fluid_pressure_display.h"
 
 namespace rviz
 {
-
-FluidPressureDisplay::FluidPressureDisplay()
-  : point_cloud_common_( new PointCloudCommon( this ))
+FluidPressureDisplay::FluidPressureDisplay() : point_cloud_common_(new PointCloudCommon(this))
 {
-  queue_size_property_ = new IntProperty( "Queue Size", 10,
-                                          "Advanced: set the size of the incoming FluidPressure message queue. "
-                                          " Increasing this is useful if your incoming TF data is delayed significantly "
-                                          "from your FluidPressure data, but it can greatly increase memory usage if the messages are big.",
-                                          this, SLOT( updateQueueSize() ));
-
   // PointCloudCommon sets up a callback queue with a thread for each
   // instance.  Use that for processing incoming messages.
-  update_nh_.setCallbackQueue( point_cloud_common_->getCallbackQueue() );
+  update_nh_.setCallbackQueue(point_cloud_common_->getCallbackQueue());
 }
 
 FluidPressureDisplay::~FluidPressureDisplay()
@@ -67,21 +59,16 @@ FluidPressureDisplay::~FluidPressureDisplay()
 void FluidPressureDisplay::onInitialize()
 {
   MFDClass::onInitialize();
-  point_cloud_common_->initialize( context_, scene_node_ );
+  point_cloud_common_->initialize(context_, scene_node_);
 
   // Set correct initial values
   subProp("Channel Name")->setValue("fluid_pressure");
   subProp("Autocompute Intensity Bounds")->setValue(false);
-  subProp("Min Intensity")->setValue(98000); // Typical 'low' atmosphereic pressure in Pascal
+  subProp("Min Intensity")->setValue(98000);  // Typical 'low' atmosphereic pressure in Pascal
   subProp("Max Intensity")->setValue(105000); // Typica 'high' atmosphereic pressure in Pascal
 }
 
-void FluidPressureDisplay::updateQueueSize()
-{
-  tf_filter_->setQueueSize( (uint32_t) queue_size_property_->getInt() );
-}
-
-void FluidPressureDisplay::processMessage( const sensor_msgs::FluidPressureConstPtr& msg )
+void FluidPressureDisplay::processMessage(const sensor_msgs::FluidPressureConstPtr& msg)
 {
   // Filter any nan values out of the cloud.  Any nan values that make it through to PointCloudBase
   // will get their points put off in lala land, but it means they still do get processed/rendered
@@ -129,13 +116,13 @@ void FluidPressureDisplay::processMessage( const sensor_msgs::FluidPressureConst
   filtered->row_step = 1;
 
   // Give to point_cloud_common to draw
-  point_cloud_common_->addMessage( filtered );
+  point_cloud_common_->addMessage(filtered);
 }
 
 
-void FluidPressureDisplay::update( float wall_dt, float ros_dt )
+void FluidPressureDisplay::update(float wall_dt, float ros_dt)
 {
-  point_cloud_common_->update( wall_dt, ros_dt );
+  point_cloud_common_->update(wall_dt, ros_dt);
 
   // Hide unneeded properties
   subProp("Position Transformer")->hide();
@@ -153,4 +140,4 @@ void FluidPressureDisplay::reset()
 } // namespace rviz
 
 #include <pluginlib/class_list_macros.hpp>
-PLUGINLIB_EXPORT_CLASS( rviz::FluidPressureDisplay, rviz::Display )
+PLUGINLIB_EXPORT_CLASS(rviz::FluidPressureDisplay, rviz::Display)

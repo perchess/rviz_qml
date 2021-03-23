@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import roslib; roslib.load_manifest('rviz')
 from nav_msgs.msg import Path
 from geometry_msgs.msg import PoseStamped
 import math
@@ -18,9 +17,9 @@ timestep = rate.sleep_dur.to_sec()
 while not rospy.is_shutdown():
 
    p = Path()
-   p.header.frame_id = "/base_link"
+   p.header.frame_id = "base_link"
    p.header.stamp = rospy.Time.now()
-   
+
    num_points = 50
    for i in range( 0, num_points ):
       ps = PoseStamped()

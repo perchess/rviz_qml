@@ -8,12 +8,15 @@
 #include "rviz/quick_visualizer_app.h"
 #include "rviz/quick_visualization_frame.h"
 
-int main( int argc, char** argv )
+int main(int argc, char** argv)
 {
-  QApplication qapp( argc, argv );
+  QApplication qapp(argc, argv);
+
+  // RViz and QtQuick currently only support one render thread
+  qputenv("QSG_RENDER_LOOP", "basic");
 
   rviz::QuickVisualizerApp vapp;
-  if( vapp.init( argc, argv ))
+  if (vapp.init(argc, argv))
   {
     rviz::QuickVisualizationFrame::registerTypes();
 

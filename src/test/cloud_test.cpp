@@ -1,24 +1,20 @@
-#include "ros/ros.h"
-
+#include <ros/ros.h>
 #include <limits>
 
-#include "sensor_msgs/PointCloud.h"
+#include <sensor_msgs/PointCloud.h>
 
-#include <tf/transform_broadcaster.h>
-
-int main( int argc, char** argv )
+int main(int argc, char** argv)
 {
-  ros::init( argc, argv, "cloud_test" );
+  ros::init(argc, argv, "cloud_test");
 
   ros::NodeHandle n;
 
-  ros::Publisher rgb_pub = n.advertise<sensor_msgs::PointCloud>( "rgb_cloud_test", 0 );
-  ros::Publisher rgb2_pub = n.advertise<sensor_msgs::PointCloud>( "rgb_cloud_test2", 0 );
-  ros::Publisher intensity_pub = n.advertise<sensor_msgs::PointCloud>( "intensity_cloud_test", 0 );
-  ros::Publisher million_pub = n.advertise<sensor_msgs::PointCloud>( "million_points_cloud_test", 0 );
-  ros::Publisher changing_channels_pub = n.advertise<sensor_msgs::PointCloud>( "changing_channels_test", 0 );
-
-  tf::TransformBroadcaster tf_broadcaster;
+  ros::Publisher rgb_pub = n.advertise<sensor_msgs::PointCloud>("rgb_cloud_test", 0);
+  ros::Publisher rgb2_pub = n.advertise<sensor_msgs::PointCloud>("rgb_cloud_test2", 0);
+  ros::Publisher intensity_pub = n.advertise<sensor_msgs::PointCloud>("intensity_cloud_test", 0);
+  ros::Publisher million_pub = n.advertise<sensor_msgs::PointCloud>("million_points_cloud_test", 0);
+  ros::Publisher changing_channels_pub =
+      n.advertise<sensor_msgs::PointCloud>("changing_channels_test", 0);
 
   ros::Duration(0.1).sleep();
 
@@ -26,9 +22,6 @@ int main( int argc, char** argv )
   while (n.ok())
   {
     ros::Time tm(ros::Time::now());
-    tf::Transform t;
-    t.setIdentity();
-    //    tf_broadcaster.sendTransform(tf::Stamped<tf::Transform>(t, tm, "base", "map"));
 
     ROS_INFO("Publishing");
 
@@ -40,7 +33,7 @@ int main( int argc, char** argv )
       if (cloud.channels.empty())
       {
         cloud.header.stamp = tm;
-        cloud.header.frame_id = "/base_link";
+        cloud.header.frame_id = "base_link";
 
         cloud.channels.resize(1);
         int32_t xcount = 100;
@@ -57,7 +50,7 @@ int main( int argc, char** argv )
           {
             for (int32_t z = 0; z < zcount; ++z)
             {
-              int32_t index = (ycount*zcount*x) + zcount*y + z;
+              int32_t index = (ycount * zcount * x) + zcount * y + z;
               geometry_msgs::Point32& point = cloud.points[index];
               point.x = x * factor;
               point.y = y * factor;
@@ -69,17 +62,17 @@ int main( int argc, char** argv )
         }
       }
 
-      million_pub.publish( cloud );
+      million_pub.publish(cloud);
     }
 
     {
       sensor_msgs::PointCloud cloud;
       cloud.header.stamp = tm;
-      cloud.header.frame_id = "/base_link";
+      cloud.header.frame_id = "base_link";
 
       cloud.points.resize(5);
       cloud.channels.resize(2);
-      for ( int j = 0; j < 5; ++j )
+      for (int j = 0; j < 5; ++j)
       {
         cloud.points[j].x = (float)j;
         cloud.points[j].y = 0.0f;
@@ -119,11 +112,11 @@ int main( int argc, char** argv )
     {
       sensor_msgs::PointCloud cloud;
       cloud.header.stamp = tm;
-      cloud.header.frame_id = "/base_link";
+      cloud.header.frame_id = "base_link";
 
       cloud.points.resize(5);
       cloud.channels.resize(3);
-      for ( int j = 0; j < 5; ++j )
+      for (int j = 0; j < 5; ++j)
       {
         cloud.points[j].x = (float)j;
         cloud.points[j].y = 1.0f;
@@ -168,7 +161,7 @@ int main( int argc, char** argv )
     {
       sensor_msgs::PointCloud cloud;
       cloud.header.stamp = tm;
-      cloud.header.frame_id = "/base_link";
+      cloud.header.frame_id = "base_link";
 
       int num_rows = 1;
       int num_cols = 200;

@@ -29,46 +29,46 @@
 
 #include <QMessageBox>
 
-#include "rviz/display_context.h"
-#include "rviz/window_manager_interface.h"
+#include <rviz/display_context.h>
+#include <rviz/window_manager_interface.h>
 
-#include "rviz/failed_tool.h"
+#include <rviz/failed_tool.h>
 
 namespace rviz
 {
-
-FailedTool::FailedTool( const QString& desired_class_id, const QString& error_message )
-  : error_message_( error_message )
+FailedTool::FailedTool(const QString& desired_class_id, const QString& error_message)
+  : error_message_(error_message)
 {
-  setClassId( desired_class_id );
+  setClassId(desired_class_id);
 }
 
 QString FailedTool::getDescription() const
 {
-  return "The class required for this tool, '" + getClassId() + "', could not be loaded.<br><b>Error:</b><br>" + error_message_;
+  return "The class required for this tool, '" + getClassId() +
+         "', could not be loaded.<br><b>Error:</b><br>" + error_message_;
 }
 
-void FailedTool::load( const Config& config )
+void FailedTool::load(const Config& config)
 {
   saved_config_ = config;
 }
 
-void FailedTool::save( Config config ) const
+void FailedTool::save(Config config) const
 {
-  if( saved_config_.isValid() )
+  if (saved_config_.isValid())
   {
-    config.copy( saved_config_ );
+    config.copy(saved_config_);
   }
 }
 
 void FailedTool::activate()
 {
-  QWidget* parent = NULL;
-  if( context_->getWindowManager() )
+  QWidget* parent = nullptr;
+  if (context_->getWindowManager())
   {
     parent = context_->getWindowManager()->getParentWindow();
   }
-  QMessageBox::critical( parent, "Tool '" + getName() + "'unavailable.", getDescription() );
+  QMessageBox::critical(parent, "Tool '" + getName() + "'unavailable.", getDescription());
 }
 
 } // end namespace rviz

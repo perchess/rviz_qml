@@ -27,37 +27,54 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <tf/transform_listener.h>
-
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2/LinearMath/Quaternion.h>
 
-#include "rviz/display_context.h"
-#include "rviz/properties/string_property.h"
+#include <rviz/display_context.h>
+#include <rviz/properties/string_property.h>
+#include <rviz/properties/float_property.h>
 
-#include "rviz/default_plugin/tools/initial_pose_tool.h"
+#include <rviz/default_plugin/tools/initial_pose_tool.h>
 
 namespace rviz
 {
-
 InitialPoseTool::InitialPoseTool()
 {
   shortcut_key_ = 'p';
 
-  topic_property_ = new StringProperty( "Topic", "initialpose",
-                                        "The topic on which to publish initial pose estimates.",
-                                        getPropertyContainer(), SLOT( updateTopic() ), this );
+  topic_property_ =
+      new StringProperty("Topic", "initialpose", "The topic on which to publish initial pose estimates.",
+                         getPropertyContainer(), SLOT(updateTopic()), this);
+  std_dev_x_ = new FloatProperty("X std deviation", 0.5, "X standard deviation for initial pose [m]",
+                                 getPropertyContainer());
+  std_dev_y_ = new FloatProperty("Y std deviation", 0.5, "Y standard deviation for initial pose [m]",
+                                 getPropertyContainer());
+  std_dev_theta_ =
+      new FloatProperty("Theta std deviation", M_PI / 12.0,
+                        "Theta standard deviation for initial pose [rad]", getPropertyContainer());
+  std_dev_x_->setMin(0);
+  std_dev_y_->setMin(0);
+  std_dev_theta_->setMin(0);
 }
 
 void InitialPoseTool::onInitialize()
 {
   PoseTool::onInitialize();
-  setName( "2D Pose Estimate" );
+  setName("2D Pose Estimate");
   updateTopic();
 }
 
 void InitialPoseTool::updateTopic()
 {
-  pub_ = nh_.advertise<geometry_msgs::PoseWithCovarianceStamped>( topic_property_->getStdString(), 1 );
+  try
+  {
+    pub_ = nh_.advertise<geometry_msgs::PoseWithCovarianceStamped>(topic_property_->getStdString(), 1);
+  }
+  catch (const ros::Exception& e)
+  {
+    ROS_ERROR_STREAM_NAMED("InitialPoseTool", e.what());
+  }
 }
 
 void InitialPoseTool::onPoseSet(double x, double y, double theta)
@@ -69,13 +86,14 @@ void InitialPoseTool::onPoseSet(double x, double y, double theta)
   pose.pose.pose.position.x = x;
   pose.pose.pose.position.y = y;
 
-  tf::Quaternion quat;
+
+  geometry_msgs::Quaternion quat_msg;
+  tf2::Quaternion quat;
   quat.setRPY(0.0, 0.0, theta);
-  tf::quaternionTFToMsg(quat,
-                        pose.pose.pose.orientation);
-  pose.pose.covariance[6*0+0] = 0.5 * 0.5;
-  pose.pose.covariance[6*1+1] = 0.5 * 0.5;
-  pose.pose.covariance[6*5+5] = M_PI/12.0 * M_PI/12.0;
+  pose.pose.pose.orientation = tf2::toMsg(quat);
+  pose.pose.covariance[6 * 0 + 0] = std::pow(std_dev_x_->getFloat(), 2);
+  pose.pose.covariance[6 * 1 + 1] = std::pow(std_dev_y_->getFloat(), 2);
+  pose.pose.covariance[6 * 5 + 5] = std::pow(std_dev_theta_->getFloat(), 2);
   ROS_INFO("Setting pose: %.3f %.3f %.3f [frame=%s]", x, y, theta, fixed_frame.c_str());
   pub_.publish(pose);
 }
@@ -83,4 +101,4 @@ void InitialPoseTool::onPoseSet(double x, double y, double theta)
 } // end namespace rviz
 
 #include <pluginlib/class_list_macros.hpp>
-PLUGINLIB_EXPORT_CLASS( rviz::InitialPoseTool, rviz::Tool )
+PLUGINLIB_EXPORT_CLASS(rviz::InitialPoseTool, rviz::Tool)

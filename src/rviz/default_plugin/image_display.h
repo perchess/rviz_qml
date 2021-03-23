@@ -30,20 +30,20 @@
 #ifndef RVIZ_IMAGE_DISPLAY_H
 #define RVIZ_IMAGE_DISPLAY_H
 
-#ifndef Q_MOC_RUN  // See: https://bugreports.qt-project.org/browse/QTBUG-22829
-# include <QObject>
+#ifndef Q_MOC_RUN // See: https://bugreports.qt-project.org/browse/QTBUG-22829
+#include <QObject>
 
-# include <OgreMaterial.h>
-# include <OgreRenderTargetListener.h>
-# include <OgreSharedPtr.h>
+#include <OgreMaterial.h>
+#include <OgreRenderTargetListener.h>
+#include <OgreSharedPtr.h>
 
-# include "rviz/image/image_display_base.h"
-# include "rviz/image/ros_image_texture.h"
-# include "rviz/render_panel.h"
+#include "rviz/image/image_display_base.h"
+#include "rviz/image/ros_image_texture.h"
+#include "rviz/render_panel.h"
 
-# include "rviz/properties/bool_property.h"
-# include "rviz/properties/float_property.h"
-# include "rviz/properties/int_property.h"
+#include "rviz/properties/bool_property.h"
+#include "rviz/properties/float_property.h"
+#include "rviz/properties/int_property.h"
 #endif
 
 
@@ -51,51 +51,48 @@ namespace Ogre
 {
 class SceneNode;
 class Rectangle2D;
-}
+} // namespace Ogre
 
 namespace rviz
 {
-
 /**
  * \class ImageDisplay
  *
  */
-class ImageDisplay: public ImageDisplayBase
+class ImageDisplay : public ImageDisplayBase
 {
-Q_OBJECT
+  Q_OBJECT
 public:
   ImageDisplay();
-  virtual ~ImageDisplay();
+  ~ImageDisplay() override;
 
   // Overrides from Display
-  virtual void onInitialize();
-  virtual void update( float wall_dt, float ros_dt );
-  virtual void reset();
+  void onInitialize() override;
+  void update(float wall_dt, float ros_dt) override;
+  void reset() override;
 
 public Q_SLOTS:
   virtual void updateNormalizeOptions();
 
 protected:
   // overrides from Display
-  virtual void onEnable();
-  virtual void onDisable();
+  void onEnable() override;
+  void onDisable() override;
 
   /* This is called by incomingMessage(). */
-  virtual void processMessage(const sensor_msgs::Image::ConstPtr& msg);
-
-private:
-  void clear();
-  void updateStatus();
+  void processMessage(const sensor_msgs::Image::ConstPtr& msg) override;
 
   Ogre::SceneManager* img_scene_manager_;
-  Ogre::SceneNode* img_scene_node_;
-  Ogre::Rectangle2D* screen_rect_;
-  Ogre::MaterialPtr material_;
 
   ROSImageTexture texture_;
 
   RenderPanel* render_panel_;
   QWidget* render_window_;
+
+private:
+  Ogre::SceneNode* img_scene_node_;
+  Ogre::Rectangle2D* screen_rect_;
+  Ogre::MaterialPtr material_;
 
   BoolProperty* normalize_property_;
   FloatProperty* min_property_;

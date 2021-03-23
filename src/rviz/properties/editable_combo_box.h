@@ -29,21 +29,20 @@
 #ifndef EDITABLE_COMBO_BOX_H
 #define EDITABLE_COMBO_BOX_H
 
-#include "rviz/properties/combo_box.h"
+#include <rviz/properties/combo_box.h>
 
 namespace rviz
 {
-
-class EditableComboBox: public ComboBox
+class EditableComboBox : public ComboBox
 {
-Q_OBJECT
+  Q_OBJECT
 public:
-  EditableComboBox( QWidget* parent = 0 );
+  EditableComboBox(QWidget* parent = nullptr);
 
 protected:
   /** @brief If event is a tab key press, set the edit text to the
    * longest common prefix from the completer. */
-  virtual bool event( QEvent* event );
+  bool event(QEvent* event) override;
 };
 
 } // end namespace rviz

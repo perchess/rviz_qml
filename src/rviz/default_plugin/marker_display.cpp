@@ -29,54 +29,50 @@
 
 #include <sstream>
 
-#include <tf/transform_listener.h>
+#include <rviz/default_plugin/markers/marker_base.h>
+#include <rviz/default_plugin/marker_utils.h>
+#include <rviz/display_context.h>
+#include <rviz/frame_manager.h>
+#include <rviz/ogre_helpers/arrow.h>
+#include <rviz/ogre_helpers/billboard_line.h>
+#include <rviz/ogre_helpers/shape.h>
+#include <rviz/properties/int_property.h>
+#include <rviz/properties/property.h>
+#include <rviz/properties/ros_topic_property.h>
+#include <rviz/selection/selection_manager.h>
 
-#include "rviz/default_plugin/markers/marker_base.h"
-#include "rviz/default_plugin/marker_utils.h"
-#include "rviz/display_context.h"
-#include "rviz/frame_manager.h"
-#include "rviz/ogre_helpers/arrow.h"
-#include "rviz/ogre_helpers/billboard_line.h"
-#include "rviz/ogre_helpers/shape.h"
-#include "rviz/properties/int_property.h"
-#include "rviz/properties/property.h"
-#include "rviz/properties/ros_topic_property.h"
-#include "rviz/selection/selection_manager.h"
-#include "rviz/validate_floats.h"
-#include "rviz/validate_quaternions.h"
-
-#include "rviz/default_plugin/marker_display.h"
+#include <rviz/default_plugin/marker_display.h>
 
 namespace rviz
 {
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-MarkerDisplay::MarkerDisplay()
-  : Display()
+MarkerDisplay::MarkerDisplay() : Display(), tf_filter_(nullptr)
 {
-  marker_topic_property_ = new RosTopicProperty( "Marker Topic", "visualization_marker",
-                                                 QString::fromStdString( ros::message_traits::datatype<visualization_msgs::Marker>() ),
-                                                 "visualization_msgs::Marker topic to subscribe to.  <topic>_array will also"
-                                                 " automatically be subscribed with type visualization_msgs::MarkerArray.",
-                                                 this, SLOT( updateTopic() ));
+  marker_topic_property_ = new RosTopicProperty(
+      "Marker Topic", "visualization_marker",
+      QString::fromStdString(ros::message_traits::datatype<visualization_msgs::Marker>()),
+      "visualization_msgs::Marker topic to subscribe to.  <topic>_array will also"
+      " automatically be subscribed with type visualization_msgs::MarkerArray.",
+      this, SLOT(updateTopic()));
 
-  queue_size_property_ = new IntProperty( "Queue Size", 100,
-                                          "Advanced: set the size of the incoming Marker message queue.  Increasing this is"
-                                          " useful if your incoming TF data is delayed significantly from your Marker data, "
-                                          "but it can greatly increase memory usage if the messages are big.",
-                                          this, SLOT( updateQueueSize() ));
-  queue_size_property_->setMin( 0 );
+  queue_size_property_ =
+      new IntProperty("Queue Size", 100,
+                      "Advanced: set the size of the incoming Marker message queue.  Increasing this is"
+                      " useful if your incoming TF data is delayed significantly from your Marker data, "
+                      "but it can greatly increase memory usage if the messages are big.",
+                      this, SLOT(updateQueueSize()));
+  queue_size_property_->setMin(0);
 
-  namespaces_category_ = new Property( "Namespaces", QVariant(), "", this );
+  namespaces_category_ = new Property("Namespaces", QVariant(), "", this);
 }
 
 void MarkerDisplay::onInitialize()
 {
-  tf_filter_ = new tf::MessageFilter<visualization_msgs::Marker>( *context_->getTFClient(),
-                                                                  fixed_frame_.toStdString(),
-                                                                  queue_size_property_->getInt(),
-                                                                  update_nh_ );
+  tf_filter_ =
+      new tf2_ros::MessageFilter<visualization_msgs::Marker>(*context_->getTF2BufferPtr(),
+                                                             fixed_frame_.toStdString(),
+                                                             queue_size_property_->getInt(), update_nh_);
 
   tf_filter_->connectInput(sub_);
   tf_filter_->registerCallback(boost::bind(&MarkerDisplay::incomingMarker, this, _1));
@@ -87,7 +83,7 @@ void MarkerDisplay::onInitialize()
 
 MarkerDisplay::~MarkerDisplay()
 {
-  if ( initialized() )
+  if (initialized())
   {
     unsubscribe();
 
@@ -102,7 +98,7 @@ void MarkerDisplay::load(const Config& config)
   Display::load(config);
 
   Config c = config.mapGetChild("Namespaces");
-  for( Config::MapIterator iter = c.mapIterator(); iter.isValid(); iter.advance() )
+  for (Config::MapIterator iter = c.mapIterator(); iter.isValid(); iter.advance())
   {
     QString key = iter.currentKey();
     const Config& child = iter.currentChild();
@@ -115,7 +111,8 @@ void MarkerDisplay::clearMarkers()
   markers_.clear();
   markers_with_expiration_.clear();
   frame_locked_markers_.clear();
-  tf_filter_->clear();
+  if (tf_filter_) // also clear messages in pipeline
+    tf_filter_->clear();
   namespaces_category_->removeChildren();
   namespaces_.clear();
 }
@@ -128,44 +125,44 @@ void MarkerDisplay::onEnable()
 void MarkerDisplay::onDisable()
 {
   unsubscribe();
-  tf_filter_->clear();
-
-  clearMarkers();
+  reset();
 }
 
 void MarkerDisplay::updateQueueSize()
 {
-  tf_filter_->setQueueSize( (uint32_t) queue_size_property_->getInt() );
+  tf_filter_->setQueueSize((uint32_t)queue_size_property_->getInt());
+  subscribe();
 }
 
 void MarkerDisplay::updateTopic()
 {
-  unsubscribe();
-  subscribe();
+  onDisable();
+  onEnable();
 }
 
 void MarkerDisplay::subscribe()
 {
-  if( !isEnabled() )
+  if (!isEnabled())
   {
     return;
   }
 
   std::string marker_topic = marker_topic_property_->getTopicStd();
-  if( !marker_topic.empty() )
+  if (!marker_topic.empty())
   {
     array_sub_.shutdown();
     sub_.unsubscribe();
 
     try
     {
-      sub_.subscribe( update_nh_, marker_topic, queue_size_property_->getInt() );
-      array_sub_ = update_nh_.subscribe( marker_topic + "_array", queue_size_property_->getInt(), &MarkerDisplay::incomingMarkerArray, this );
-      setStatus( StatusProperty::Ok, "Topic", "OK" );
+      sub_.subscribe(update_nh_, marker_topic, queue_size_property_->getInt());
+      array_sub_ = update_nh_.subscribe(marker_topic + "_array", queue_size_property_->getInt(),
+                                        &MarkerDisplay::incomingMarkerArray, this);
+      setStatus(StatusProperty::Ok, "Topic", "OK");
     }
-    catch( ros::Exception& e )
+    catch (ros::Exception& e)
     {
-      setStatus( StatusProperty::Error, "Topic", QString("Error subscribing: ") + e.what() );
+      setStatus(StatusProperty::Error, "Topic", QString("Error subscribing: ") + e.what());
     }
   }
 }
@@ -176,12 +173,16 @@ void MarkerDisplay::unsubscribe()
   array_sub_.shutdown();
 }
 
-void MarkerDisplay::deleteMarker(MarkerID id)
+inline void MarkerDisplay::deleteMarker(const MarkerID& id)
 {
-  deleteMarkerStatus( id );
+  deleteMarkerStatus(id);
+  deleteMarkerInternal(id);
+}
 
-  M_IDToMarker::iterator it = markers_.find( id );
-  if( it != markers_.end() )
+void MarkerDisplay::deleteMarkerInternal(const MarkerID& id)
+{
+  M_IDToMarker::iterator it = markers_.find(id);
+  if (it != markers_.end())
   {
     markers_with_expiration_.erase(it->second);
     frame_locked_markers_.erase(it->second);
@@ -189,7 +190,7 @@ void MarkerDisplay::deleteMarker(MarkerID id)
   }
 }
 
-void MarkerDisplay::deleteMarkersInNamespace( const std::string& ns )
+void MarkerDisplay::deleteMarkersInNamespace(const std::string& ns)
 {
   std::vector<MarkerID> to_delete;
 
@@ -225,11 +226,11 @@ void MarkerDisplay::deleteAllMarkers()
 
   for (std::vector<MarkerID>::iterator it = to_delete.begin(); it != to_delete.end(); ++it)
   {
-    deleteMarker( *it );
+    deleteMarker(*it);
   }
 }
 
-void MarkerDisplay::setMarkerStatus(MarkerID id, StatusLevel level, const std::string& text)
+void MarkerDisplay::setMarkerStatus(const MarkerID& id, StatusLevel level, const std::string& text)
 {
   std::stringstream ss;
   ss << id.first << "/" << id.second;
@@ -237,7 +238,7 @@ void MarkerDisplay::setMarkerStatus(MarkerID id, StatusLevel level, const std::s
   setStatusStd(level, marker_name, text);
 }
 
-void MarkerDisplay::deleteMarkerStatus(MarkerID id)
+void MarkerDisplay::deleteMarkerStatus(const MarkerID& id)
 {
   std::stringstream ss;
   ss << id.first << "/" << id.second;
@@ -247,131 +248,107 @@ void MarkerDisplay::deleteMarkerStatus(MarkerID id)
 
 void MarkerDisplay::incomingMarkerArray(const visualization_msgs::MarkerArray::ConstPtr& array)
 {
-  std::vector<visualization_msgs::Marker>::const_iterator it = array->markers.begin();
-  std::vector<visualization_msgs::Marker>::const_iterator end = array->markers.end();
-  for (; it != end; ++it)
+  checkMarkerArrayMsg(*array, this);
+  for (const visualization_msgs::Marker& marker : array->markers)
   {
-    const visualization_msgs::Marker& marker = *it;
     tf_filter_->add(visualization_msgs::Marker::Ptr(new visualization_msgs::Marker(marker)));
   }
 }
 
-void MarkerDisplay::incomingMarker( const visualization_msgs::Marker::ConstPtr& marker )
+void MarkerDisplay::incomingMarker(const visualization_msgs::Marker::ConstPtr& marker)
 {
   boost::mutex::scoped_lock lock(queue_mutex_);
-
   message_queue_.push_back(marker);
 }
 
-void MarkerDisplay::failedMarker(const ros::MessageEvent<visualization_msgs::Marker>& marker_evt, tf::FilterFailureReason reason)
+void MarkerDisplay::failedMarker(const ros::MessageEvent<visualization_msgs::Marker>& marker_evt,
+                                 tf2_ros::FilterFailureReason reason)
 {
-  visualization_msgs::Marker::ConstPtr marker = marker_evt.getConstMessage();
+  const visualization_msgs::Marker::ConstPtr& marker = marker_evt.getConstMessage();
   if (marker->action == visualization_msgs::Marker::DELETE ||
-      marker->action == 3)  // TODO: visualization_msgs::Marker::DELETEALL when message changes in a future version of ROS
+      marker->action == visualization_msgs::Marker::DELETEALL)
   {
     return this->processMessage(marker);
   }
-  std::string authority = marker_evt.getPublisherName();
-  std::string error = context_->getFrameManager()->discoverFailureReason(marker->header.frame_id, marker->header.stamp, authority, reason);
+  const std::string& authority = marker_evt.getPublisherName();
+  std::string error = context_->getFrameManager()->discoverFailureReason(
+      marker->header.frame_id, marker->header.stamp, authority, reason);
+
   setMarkerStatus(MarkerID(marker->ns, marker->id), StatusProperty::Error, error);
 }
 
-bool validateFloats(const visualization_msgs::Marker& msg)
+void MarkerDisplay::processMessage(const visualization_msgs::Marker::ConstPtr& message)
 {
-  bool valid = true;
-  valid = valid && validateFloats(msg.pose);
-  valid = valid && validateFloats(msg.scale);
-  valid = valid && validateFloats(msg.color);
-  valid = valid && validateFloats(msg.points);
-  return valid;
-}
-
-void MarkerDisplay::processMessage( const visualization_msgs::Marker::ConstPtr& message )
-{
-  if ( !validateFloats( *message ))
-  {
-    setMarkerStatus( MarkerID( message->ns, message->id ), StatusProperty::Error,
-                     "Contains invalid floating point values (nans or infs)" );
-    return;
-  }
-
-  if( !validateQuaternions( message->pose ))
-  {
-    ROS_WARN_ONCE_NAMED( "quaternions", "Marker '%s/%d' contains unnormalized quaternions. "
-                         "This warning will only be output once but may be true for others; "
-                         "enable DEBUG messages for ros.rviz.quaternions to see more details.",
-                         message->ns.c_str(), message->id );
-    ROS_DEBUG_NAMED( "quaternions", "Marker '%s/%d' contains unnormalized quaternions.", 
-                     message->ns.c_str(), message->id );
-  }
-
-  switch ( message->action )
+  switch (message->action)
   {
   case visualization_msgs::Marker::ADD:
-    processAdd( message );
+    if (checkMarkerMsg(*message, this))
+      processAdd(message);
+    else
+      // delete marker, but keep marker status (generated by checkMarkerMsg)
+      deleteMarkerInternal(MarkerID(message->ns, message->id));
     break;
 
   case visualization_msgs::Marker::DELETE:
-    processDelete( message );
+    processDelete(message);
     break;
 
-  case 3: // TODO: visualization_msgs::Marker::DELETEALL when message changes in a future version of ROS
+  case visualization_msgs::Marker::DELETEALL:
     deleteAllMarkers();
     break;
 
   default:
-    ROS_ERROR( "Unknown marker action: %d\n", message->action );
+    ROS_ERROR("Unknown marker action: %d\n", message->action);
   }
 }
 
-void MarkerDisplay::processAdd( const visualization_msgs::Marker::ConstPtr& message )
+void MarkerDisplay::processAdd(const visualization_msgs::Marker::ConstPtr& message)
 {
-  QString namespace_name = QString::fromStdString( message->ns );
-  M_Namespace::iterator ns_it = namespaces_.find( namespace_name );
-  if( ns_it == namespaces_.end() )
+  QString namespace_name = QString::fromStdString(message->ns);
+  M_Namespace::iterator ns_it = namespaces_.find(namespace_name);
+  if (ns_it == namespaces_.end())
   {
-    ns_it = namespaces_.insert( namespace_name, new MarkerNamespace( namespace_name, namespaces_category_, this ));
+    ns_it = namespaces_.insert(namespace_name,
+                               new MarkerNamespace(namespace_name, namespaces_category_, this));
 
     // Adding a new namespace, determine if it's configured to be disabled
-    if( namespace_config_enabled_state_.count(namespace_name) > 0 &&
-        !namespace_config_enabled_state_[namespace_name] )
+    if (namespace_config_enabled_state_.count(namespace_name) > 0 &&
+        !namespace_config_enabled_state_[namespace_name])
     {
-      ns_it.value()->setValue(false);  // Disable the namespace
+      ns_it.value()->setValue(false); // Disable the namespace
     }
   }
 
-  if( !ns_it.value()->isEnabled() )
+  if (!ns_it.value()->isEnabled())
   {
     return;
   }
 
-  deleteMarkerStatus( MarkerID( message->ns, message->id ));
-
   bool create = true;
   MarkerBasePtr marker;
 
-  M_IDToMarker::iterator it = markers_.find( MarkerID(message->ns, message->id) );
-  if ( it != markers_.end() )
+  M_IDToMarker::iterator it = markers_.find(MarkerID(message->ns, message->id));
+  if (it != markers_.end())
   {
     marker = it->second;
     markers_with_expiration_.erase(marker);
-    if ( message->type == marker->getMessage()->type )
+    if (message->type == marker->getMessage()->type)
     {
       create = false;
     }
     else
     {
-      markers_.erase( it );
+      deleteMarkerInternal(it->first);
     }
   }
 
-  if ( create )
+  if (create)
   {
     marker.reset(createMarker(message->type, this, context_, scene_node_));
-    if (!marker) {
-      ROS_ERROR( "Unknown marker type: %d", message->type );
+    if (marker)
+    {
+      markers_.insert(std::make_pair(MarkerID(message->ns, message->id), marker));
     }
-    markers_.insert(std::make_pair(MarkerID(message->ns, message->id), marker));
   }
 
   if (marker)
@@ -392,32 +369,32 @@ void MarkerDisplay::processAdd( const visualization_msgs::Marker::ConstPtr& mess
   }
 }
 
-void MarkerDisplay::processDelete( const visualization_msgs::Marker::ConstPtr& message )
+void MarkerDisplay::processDelete(const visualization_msgs::Marker::ConstPtr& message)
 {
   deleteMarker(MarkerID(message->ns, message->id));
 
   context_->queueRender();
 }
 
-void MarkerDisplay::update(float wall_dt, float ros_dt)
+void MarkerDisplay::update(float /*wall_dt*/, float /*ros_dt*/)
 {
   V_MarkerMessage local_queue;
 
   {
     boost::mutex::scoped_lock lock(queue_mutex_);
 
-    local_queue.swap( message_queue_ );
+    local_queue.swap(message_queue_);
   }
 
-  if ( !local_queue.empty() )
+  if (!local_queue.empty())
   {
     V_MarkerMessage::iterator message_it = local_queue.begin();
     V_MarkerMessage::iterator message_end = local_queue.end();
-    for ( ; message_it != message_end; ++message_it )
+    for (; message_it != message_end; ++message_it)
     {
       visualization_msgs::Marker::ConstPtr& marker = *message_it;
 
-      processMessage( marker );
+      processMessage(marker);
     }
   }
 
@@ -452,7 +429,7 @@ void MarkerDisplay::update(float wall_dt, float ros_dt)
 
 void MarkerDisplay::fixedFrameChanged()
 {
-  tf_filter_->setTargetFrame( fixed_frame_.toStdString() );
+  tf_filter_->setTargetFrame(fixed_frame_.toStdString());
 
   clearMarkers();
 }
@@ -463,31 +440,29 @@ void MarkerDisplay::reset()
   clearMarkers();
 }
 
-void MarkerDisplay::setTopic( const QString &topic, const QString &datatype )
+void MarkerDisplay::setTopic(const QString& topic, const QString& /*datatype*/)
 {
-  marker_topic_property_->setString( topic );
+  marker_topic_property_->setString(topic);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
 // MarkerNamespace
 
-MarkerNamespace::MarkerNamespace( const QString& name, Property* parent_property, MarkerDisplay* owner )
-  : BoolProperty( name, true,
-                  "Enable/disable all markers in this namespace.",
-                  parent_property )
-  , owner_( owner )
+MarkerNamespace::MarkerNamespace(const QString& name, Property* parent_property, MarkerDisplay* owner)
+  : BoolProperty(name, true, "Enable/disable all markers in this namespace.", parent_property)
+  , owner_(owner)
 {
   // Can't do this connect in chained constructor above because at
   // that point it doesn't really know that "this" is a
   // MarkerNamespace*, so the signal doesn't get connected.
-  connect( this, SIGNAL( changed() ), this, SLOT( onEnableChanged() ));
+  connect(this, SIGNAL(changed()), this, SLOT(onEnableChanged()));
 }
 
 void MarkerNamespace::onEnableChanged()
 {
-  if( !isEnabled() )
+  if (!isEnabled())
   {
-    owner_->deleteMarkersInNamespace( getName().toStdString() );
+    owner_->deleteMarkersInNamespace(getName().toStdString());
   }
 
   // Update the configuration that stores the enabled state of all markers
@@ -497,4 +472,4 @@ void MarkerNamespace::onEnableChanged()
 } // namespace rviz
 
 #include <pluginlib/class_list_macros.hpp>
-PLUGINLIB_EXPORT_CLASS( rviz::MarkerDisplay, rviz::Display )
+PLUGINLIB_EXPORT_CLASS(rviz::MarkerDisplay, rviz::Display)

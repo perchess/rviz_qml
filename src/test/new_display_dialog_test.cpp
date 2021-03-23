@@ -33,36 +33,31 @@
 
 #include <pluginlib/class_loader.hpp>
 
-#include "rviz/display.h"
-#include "rviz/pluginlib_factory.h"
-#include "rviz/new_object_dialog.h"
+#include <rviz/display.h>
+#include <rviz/pluginlib_factory.h>
+#include <rviz/new_object_dialog.h>
 
-int main( int argc, char **argv )
+int main(int argc, char** argv)
 {
-  QApplication app( argc, argv );
+  QApplication app(argc, argv);
 
   QString lookup_name;
   QString display_name;
-  rviz::PluginlibFactory<rviz::Display> * factory = new rviz::PluginlibFactory<rviz::Display>( "rviz", "rviz::Display" );
-  typedef std::set<std::pair<uint8_t, std::string> > S_string;
+  rviz::PluginlibFactory<rviz::Display>* factory =
+      new rviz::PluginlibFactory<rviz::Display>("rviz", "rviz::Display");
   QStringList current_names;
-  current_names << "Chub" << "Town";
+  current_names << "Chub"
+                << "Town";
   QStringList empty;
-  rviz::NewObjectDialog* dialog = new rviz::NewObjectDialog(
-    factory,
-    QString("Display"),
-    current_names,
-    empty,
-    &lookup_name,
-    &display_name,
-    0
-  );
-  if( dialog->exec() == QDialog::Accepted )
+  rviz::NewObjectDialog* dialog = new rviz::NewObjectDialog(factory, QString("Display"), current_names,
+                                                            empty, &lookup_name, &display_name, nullptr);
+  if (dialog->exec() == QDialog::Accepted)
   {
-    printf( "lookup_name='%s', display_name='%s'\n", lookup_name.toStdString().c_str(), display_name.toStdString().c_str() );
+    printf("lookup_name='%s', display_name='%s'\n", lookup_name.toStdString().c_str(),
+           display_name.toStdString().c_str());
   }
   else
   {
-    printf( "cancelled\n" );
+    printf("cancelled\n");
   }
 }

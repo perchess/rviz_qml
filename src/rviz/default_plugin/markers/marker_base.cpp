@@ -28,11 +28,11 @@
  */
 
 #include "marker_base.h"
-#include "rviz/default_plugin/marker_display.h"
-#include "rviz/display_context.h"
-#include "rviz/selection/selection_manager.h"
+#include <rviz/default_plugin/marker_display.h>
+#include <rviz/display_context.h>
+#include <rviz/selection/selection_manager.h>
 #include "marker_selection_handler.h"
-#include "rviz/frame_manager.h"
+#include <rviz/frame_manager.h>
 
 #include <OgreSceneNode.h>
 #include <OgreSceneManager.h>
@@ -40,17 +40,16 @@
 #include <OgreSubEntity.h>
 #include <OgreSharedPtr.h>
 
-#include <tf/tf.h>
-#include <tf/transform_listener.h>
+
+#include <utility>
+
 
 namespace rviz
 {
-
-MarkerBase::MarkerBase( MarkerDisplay* owner, DisplayContext* context, Ogre::SceneNode* parent_node )
-  : owner_( owner )
-  , context_( context )
-  , scene_node_( parent_node->createChildSceneNode() )
-{}
+MarkerBase::MarkerBase(MarkerDisplay* owner, DisplayContext* context, Ogre::SceneNode* parent_node)
+  : owner_(owner), context_(context), scene_node_(parent_node->createChildSceneNode())
+{
+}
 
 MarkerBase::~MarkerBase()
 {
@@ -60,8 +59,8 @@ MarkerBase::~MarkerBase()
 void MarkerBase::setMessage(const Marker& message)
 {
   // copy and save to shared pointer
-  MarkerConstPtr message_ptr( new Marker(message) );
-  setMessage( message_ptr );
+  MarkerConstPtr message_ptr(new Marker(message));
+  setMessage(message_ptr);
 }
 
 void MarkerBase::setMessage(const MarkerConstPtr& message)
@@ -85,7 +84,10 @@ bool MarkerBase::expired()
   return ros::Time::now() >= expiration_;
 }
 
-bool MarkerBase::transform(const MarkerConstPtr& message, Ogre::Vector3& pos, Ogre::Quaternion& orient, Ogre::Vector3& scale)
+bool MarkerBase::transform(const MarkerConstPtr& message,
+                           Ogre::Vector3& pos,
+                           Ogre::Quaternion& orient,
+                           Ogre::Vector3& scale)
 {
   ros::Time stamp = message->header.stamp;
   if (message->frame_locked)
@@ -93,11 +95,13 @@ bool MarkerBase::transform(const MarkerConstPtr& message, Ogre::Vector3& pos, Og
     stamp = ros::Time();
   }
 
-  if (!context_->getFrameManager()->transform(message->header.frame_id, stamp, message->pose, pos, orient))
+  if (!context_->getFrameManager()->transform(message->header.frame_id, stamp, message->pose, pos,
+                                              orient))
   {
     std::string error;
-    context_->getFrameManager()->transformHasProblems(message->header.frame_id, message->header.stamp, error);
-    if ( owner_ )
+    context_->getFrameManager()->transformHasProblems(message->header.frame_id, message->header.stamp,
+                                                      error);
+    if (owner_)
     {
       owner_->setMarkerStatus(getID(), StatusProperty::Error, error);
     }
@@ -109,45 +113,44 @@ bool MarkerBase::transform(const MarkerConstPtr& message, Ogre::Vector3& pos, Og
   return true;
 }
 
-void MarkerBase::setInteractiveObject( InteractiveObjectWPtr control )
+void MarkerBase::setInteractiveObject(InteractiveObjectWPtr control)
 {
-  if( handler_ )
+  if (handler_)
   {
-    handler_->setInteractiveObject( control );
+    handler_->setInteractiveObject(std::move(control));
   }
 }
 
-void MarkerBase::setPosition( const Ogre::Vector3& position )
+void MarkerBase::setPosition(const Ogre::Vector3& position)
 {
-  scene_node_->setPosition( position );
+  scene_node_->setPosition(position);
 }
 
-void MarkerBase::setOrientation( const Ogre::Quaternion& orientation )
+void MarkerBase::setOrientation(const Ogre::Quaternion& orientation)
 {
-  scene_node_->setOrientation( orientation );
+  scene_node_->setOrientation(orientation);
 }
 
-const Ogre::Vector3& MarkerBase::getPosition()
+const Ogre::Vector3& MarkerBase::getPosition() const
 {
   return scene_node_->getPosition();
 }
 
-const Ogre::Quaternion& MarkerBase::getOrientation()
+const Ogre::Quaternion& MarkerBase::getOrientation() const
 {
   return scene_node_->getOrientation();
 }
 
-void MarkerBase::extractMaterials( Ogre::Entity *entity, S_MaterialPtr &materials )
+void MarkerBase::extractMaterials(Ogre::Entity* entity, S_MaterialPtr& materials)
 {
   uint32_t num_sub_entities = entity->getNumSubEntities();
   for (uint32_t i = 0; i < num_sub_entities; ++i)
   {
     Ogre::SubEntity* sub = entity->getSubEntity(i);
-    Ogre::MaterialPtr material = sub->getMaterial();
-    materials.insert( material );
+    const Ogre::MaterialPtr& material = sub->getMaterial();
+    materials.insert(material);
   }
 }
-
 
 
 } // namespace rviz

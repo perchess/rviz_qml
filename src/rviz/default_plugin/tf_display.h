@@ -36,9 +36,9 @@
 #include <OgreQuaternion.h>
 #include <OgreVector3.h>
 
-#include "rviz/selection/forwards.h"
+#include <rviz/selection/forwards.h>
 
-#include "rviz/display.h"
+#include <rviz/display.h>
 
 namespace Ogre
 {
@@ -61,21 +61,21 @@ class FrameSelectionHandler;
 typedef boost::shared_ptr<FrameSelectionHandler> FrameSelectionHandlerPtr;
 
 /** @brief Displays a visual representation of the TF hierarchy. */
-class TFDisplay: public Display
+class TFDisplay : public Display
 {
-Q_OBJECT
+  Q_OBJECT
 public:
   TFDisplay();
-  virtual ~TFDisplay();
+  ~TFDisplay() override;
 
-  virtual void update(float wall_dt, float ros_dt);
+  void update(float wall_dt, float ros_dt) override;
 
 protected:
   // Overrides from Display
-  virtual void onInitialize();
-  virtual void load(const Config& config);
-  virtual void fixedFrameChanged();
-  virtual void reset();
+  void onInitialize() override;
+  void load(const Config& config) override;
+  void fixedFrameChanged() override;
+  void reset() override;
 
 private Q_SLOTS:
   void updateShowAxes();
@@ -84,25 +84,26 @@ private Q_SLOTS:
   void allEnabledChanged();
 
 private:
+  typedef std::map<std::string, FrameInfo*> M_FrameInfo;
+
   void updateFrames();
   FrameInfo* createFrame(const std::string& frame);
   void updateFrame(FrameInfo* frame);
-  void deleteFrame(FrameInfo* frame, bool delete_properties);
+  M_FrameInfo::iterator deleteFrame(M_FrameInfo::iterator it, bool delete_properties);
 
   FrameInfo* getFrameInfo(const std::string& frame);
 
   void clear();
 
   // overrides from Display
-  virtual void onEnable();
-  virtual void onDisable();
+  void onEnable() override;
+  void onDisable() override;
 
   Ogre::SceneNode* root_node_;
   Ogre::SceneNode* names_node_;
   Ogre::SceneNode* arrows_node_;
   Ogre::SceneNode* axes_node_;
 
-  typedef std::map<std::string, FrameInfo*> M_FrameInfo;
   M_FrameInfo frames_;
 
   typedef std::map<std::string, bool> M_EnabledState;
@@ -118,6 +119,7 @@ private:
   BoolProperty* all_enabled_property_;
 
   FloatProperty* scale_property_;
+  FloatProperty* alpha_property_;
 
   Property* frames_category_;
   Property* tree_category_;
@@ -127,20 +129,22 @@ private:
 };
 
 /** @brief Internal class needed only by TFDisplay. */
-class FrameInfo: public QObject
+class FrameInfo : public QObject
 {
   Q_OBJECT
-  public:
-  FrameInfo( TFDisplay* display );
+public:
+  FrameInfo(TFDisplay* display);
 
   /** @brief Set this frame to be visible or invisible. */
-  void setEnabled( bool enabled );
+  void setEnabled(bool enabled);
 
 public Q_SLOTS:
-  /** @brief Update whether the frame is visible or not, based on the enabled_property_ in this FrameInfo. */
+  /** @brief Update whether the frame is visible or not, based on the enabled_property_ in this
+   * FrameInfo. */
   void updateVisibilityFromFrame();
 
-  /** @brief Update whether the frame is visible or not, based on the enabled_property_ in the selection handler. */
+  /** @brief Update whether the frame is visible or not, based on the enabled_property_ in the selection
+   * handler. */
   void updateVisibilityFromSelection();
 
 public:

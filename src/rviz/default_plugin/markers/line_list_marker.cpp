@@ -29,8 +29,8 @@
 
 #include "line_list_marker.h"
 #include "marker_selection_handler.h"
-#include "rviz/default_plugin/marker_display.h"
-#include "rviz/display_context.h"
+#include <rviz/default_plugin/marker_display.h>
+#include <rviz/display_context.h>
 
 #include <rviz/ogre_helpers/billboard_line.h>
 
@@ -40,10 +40,10 @@
 
 namespace rviz
 {
-
-LineListMarker::LineListMarker(MarkerDisplay* owner, DisplayContext* context, Ogre::SceneNode* parent_node)
-: MarkerBase(owner, context, parent_node)
-, lines_(0)
+LineListMarker::LineListMarker(MarkerDisplay* owner,
+                               DisplayContext* context,
+                               Ogre::SceneNode* parent_node)
+  : MarkerBase(owner, context, parent_node), lines_(nullptr)
 {
 }
 
@@ -52,7 +52,8 @@ LineListMarker::~LineListMarker()
   delete lines_;
 }
 
-void LineListMarker::onNewMessage(const MarkerConstPtr& old_message, const MarkerConstPtr& new_message)
+void LineListMarker::onNewMessage(const MarkerConstPtr& /*old_message*/,
+                                  const MarkerConstPtr& new_message)
 {
   ROS_ASSERT(new_message->type == visualization_msgs::Marker::LINE_LIST);
 
@@ -63,12 +64,18 @@ void LineListMarker::onNewMessage(const MarkerConstPtr& old_message, const Marke
 
   Ogre::Vector3 pos, scale;
   Ogre::Quaternion orient;
-  transform(new_message, pos, orient, scale);
+  if (!transform(new_message, pos, orient, scale))
+  {
+    scene_node_->setVisible(false);
+    return;
+  }
 
+  scene_node_->setVisible(true);
   setPosition(pos);
   setOrientation(orient);
   lines_->setScale(scale);
-  lines_->setColor(new_message->color.r, new_message->color.g, new_message->color.b, new_message->color.a);
+  lines_->setColor(new_message->color.r, new_message->color.g, new_message->color.b,
+                   new_message->color.a);
 
   lines_->clear();
 
@@ -81,14 +88,14 @@ void LineListMarker::onNewMessage(const MarkerConstPtr& old_message, const Marke
 
   if (new_message->points.size() % 2 == 0)
   {
-    lines_->setLineWidth( new_message->scale.x );
+    lines_->setLineWidth(new_message->scale.x);
     lines_->setMaxPointsPerLine(2);
     lines_->setNumLines(new_message->points.size() / 2);
 
     size_t i = 0;
     std::vector<geometry_msgs::Point>::const_iterator it = new_message->points.begin();
     std::vector<geometry_msgs::Point>::const_iterator end = new_message->points.end();
-    for ( ; it != end; )
+    for (; it != end;)
     {
       if (it != new_message->points.begin())
       {
@@ -116,31 +123,22 @@ void LineListMarker::onNewMessage(const MarkerConstPtr& old_message, const Marke
           c.a = new_message->color.a;
         }
 
-        Ogre::Vector3 v( p.x, p.y, p.z );
-        lines_->addPoint( v, c );
+        Ogre::Vector3 v(p.x, p.y, p.z);
+        lines_->addPoint(v, c);
       }
     }
 
-    handler_.reset( new MarkerSelectionHandler( this, MarkerID( new_message->ns, new_message->id ), context_ ));
-    handler_->addTrackedObjects( lines_->getSceneNode() );
-  }
-  else
-  {
-    std::stringstream ss;
-    ss << "Line list marker [" << getStringID() << "] has an odd number of points.";
-    if ( owner_ )
-    {
-      owner_->setMarkerStatus(getID(), StatusProperty::Error, ss.str());
-    }
-    ROS_DEBUG("%s", ss.str().c_str());
+    handler_.reset(
+        new MarkerSelectionHandler(this, MarkerID(new_message->ns, new_message->id), context_));
+    handler_->addTrackedObjects(lines_->getSceneNode());
   }
 }
 
 S_MaterialPtr LineListMarker::getMaterials()
 {
   S_MaterialPtr materials;
-  materials.insert( lines_->getMaterial() );
+  materials.insert(lines_->getMaterial());
   return materials;
 }
 
-}
+} // namespace rviz

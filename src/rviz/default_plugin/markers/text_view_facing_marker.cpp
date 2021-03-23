@@ -32,19 +32,19 @@
 
 #include <ros/assert.h>
 
-#include "rviz/default_plugin/markers/marker_selection_handler.h"
-#include "rviz/display_context.h"
-#include "rviz/ogre_helpers/movable_text.h"
-#include "rviz/selection/selection_manager.h"
+#include <rviz/default_plugin/markers/marker_selection_handler.h>
+#include <rviz/display_context.h>
+#include <rviz/ogre_helpers/movable_text.h>
+#include <rviz/selection/selection_manager.h>
 
-#include "rviz/default_plugin/markers/text_view_facing_marker.h"
+#include <rviz/default_plugin/markers/text_view_facing_marker.h>
 
 namespace rviz
 {
-
-TextViewFacingMarker::TextViewFacingMarker(MarkerDisplay* owner, DisplayContext* context, Ogre::SceneNode* parent_node)
-: MarkerBase(owner, context, parent_node)
-, text_(0)
+TextViewFacingMarker::TextViewFacingMarker(MarkerDisplay* owner,
+                                           DisplayContext* context,
+                                           Ogre::SceneNode* parent_node)
+  : MarkerBase(owner, context, parent_node), text_(nullptr)
 {
 }
 
@@ -53,7 +53,8 @@ TextViewFacingMarker::~TextViewFacingMarker()
   delete text_;
 }
 
-void TextViewFacingMarker::onNewMessage(const MarkerConstPtr& old_message, const MarkerConstPtr& new_message)
+void TextViewFacingMarker::onNewMessage(const MarkerConstPtr& /*old_message*/,
+                                        const MarkerConstPtr& new_message)
 {
   ROS_ASSERT(new_message->type == visualization_msgs::Marker::TEXT_VIEW_FACING);
 
@@ -63,29 +64,35 @@ void TextViewFacingMarker::onNewMessage(const MarkerConstPtr& old_message, const
     text_->setTextAlignment(MovableText::H_CENTER, MovableText::V_CENTER);
     scene_node_->attachObject(text_);
 
-    handler_.reset( new MarkerSelectionHandler(this, MarkerID(new_message->ns, new_message->id ), context_ ));
-    handler_->addTrackedObject( text_ );
+    handler_.reset(
+        new MarkerSelectionHandler(this, MarkerID(new_message->ns, new_message->id), context_));
+    handler_->addTrackedObject(text_);
   }
 
   Ogre::Vector3 pos, scale;
   Ogre::Quaternion orient;
-  transform(new_message, pos, orient, scale);
+  if (!transform(new_message, pos, orient, scale))
+  {
+    scene_node_->setVisible(false);
+    return;
+  }
 
+  scene_node_->setVisible(true);
   setPosition(pos);
   text_->setCharacterHeight(new_message->scale.z);
-  text_->setColor(Ogre::ColourValue(new_message->color.r, new_message->color.g, new_message->color.b, new_message->color.a));
+  text_->setColor(Ogre::ColourValue(new_message->color.r, new_message->color.g, new_message->color.b,
+                                    new_message->color.a));
   text_->setCaption(new_message->text);
 }
 
 S_MaterialPtr TextViewFacingMarker::getMaterials()
 {
   S_MaterialPtr materials;
-  if ( text_->getMaterial().get() )
+  if (text_ && text_->getMaterial().get())
   {
-  materials.insert( text_->getMaterial() );
+    materials.insert(text_->getMaterial());
   }
   return materials;
 }
 
-}
-
+} // namespace rviz

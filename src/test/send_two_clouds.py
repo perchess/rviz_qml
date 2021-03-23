@@ -32,8 +32,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #!/usr/bin/env python
 
-import roslib
-roslib.load_manifest('rviz')
 import rospy
 
 from sensor_msgs.msg import PointCloud
@@ -47,9 +45,9 @@ rospy.init_node('send_two_clouds')
 cloud = PointCloud()
 while not rospy.is_shutdown():
 
-    cloud.header.frame_id = "/base_link"
+    cloud.header.frame_id = "base_link"
     cloud.header.stamp = rospy.Time.now()
-   
+
     cloud.points = [
         Point32( 0, 0, 0 ),
         Point32( .1, 0, 0 ),

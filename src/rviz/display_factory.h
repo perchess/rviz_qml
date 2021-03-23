@@ -29,8 +29,8 @@
 #ifndef DISPLAY_FACTORY_H
 #define DISPLAY_FACTORY_H
 
-#include "rviz/display.h"
-#include "rviz/pluginlib_factory.h"
+#include <rviz/display.h>
+#include <rviz/pluginlib_factory.h>
 
 #include <QIcon>
 #include <QSet>
@@ -39,20 +39,19 @@
 
 namespace rviz
 {
-
-class DisplayFactory: public PluginlibFactory<Display>
+class DisplayFactory : public PluginlibFactory<Display>
 {
 public:
   DisplayFactory();
 
   /** @brief Get all supported message types for the given class id. */
-  virtual QSet<QString> getMessageTypes( const QString& class_id );
+  virtual QSet<QString> getMessageTypes(const QString& class_id);
 
 protected:
   /** @brief Overridden from PluginlibFactory<Display> to set the icon of the Display. */
-  virtual Display* makeRaw( const QString& class_id, QString* error_return = NULL );
+  Display* makeRaw(const QString& class_id, QString* error_return = nullptr) override;
 
-  QMap< QString, QSet<QString> > message_type_cache_;
+  QMap<QString, QSet<QString> > message_type_cache_;
 };
 
 } // end namespace rviz

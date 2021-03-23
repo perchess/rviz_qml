@@ -33,11 +33,10 @@
 #include <sensor_msgs/RelativeHumidity.h>
 #include <sensor_msgs/PointCloud2.h>
 
-#include "rviz/message_filter_display.h"
+#include <rviz/message_filter_display.h>
 
 namespace rviz
 {
-
 class IntProperty;
 class PointCloudCommon;
 
@@ -46,28 +45,23 @@ class PointCloudCommon;
  * \brief Displays a RelativeHumidity message of type sensor_msgs::RelativeHumidity
  *
  */
-class RelativeHumidityDisplay: public MessageFilterDisplay<sensor_msgs::RelativeHumidity>
+class RelativeHumidityDisplay : public MessageFilterDisplay<sensor_msgs::RelativeHumidity>
 {
-Q_OBJECT
+  Q_OBJECT
 public:
   RelativeHumidityDisplay();
-  ~RelativeHumidityDisplay();
+  ~RelativeHumidityDisplay() override;
 
-  virtual void reset();
+  void reset() override;
 
-  virtual void update( float wall_dt, float ros_dt );
-
-private Q_SLOTS:
-  void updateQueueSize();
+  void update(float wall_dt, float ros_dt) override;
 
 protected:
   /** @brief Do initialization. Overridden from MessageFilterDisplay. */
-  virtual void onInitialize();
+  void onInitialize() override;
 
   /** @brief Process a single message.  Overridden from MessageFilterDisplay. */
-  virtual void processMessage( const sensor_msgs::RelativeHumidityConstPtr& msg );
-
-  IntProperty* queue_size_property_;
+  void processMessage(const sensor_msgs::RelativeHumidityConstPtr& msg) override;
 
   PointCloudCommon* point_cloud_common_;
 };

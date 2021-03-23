@@ -28,31 +28,28 @@
  */
 
 #include "tf_link_updater.h"
-#include "frame_manager.h"
-
-#include <tf/tf.h>
+#include <rviz/frame_manager.h>
+#include <rviz/helpers/tf_prefix.h>
 
 #include <OgreVector3.h>
 #include <OgreQuaternion.h>
 
 namespace rviz
 {
-
-TFLinkUpdater::TFLinkUpdater(FrameManager* frame_manager, const StatusCallback& status_cb, const std::string& tf_prefix)
-: frame_manager_(frame_manager)
-, status_callback_(status_cb)
-, tf_prefix_(tf_prefix)
+TFLinkUpdater::TFLinkUpdater(FrameManager* frame_manager,
+                             const StatusCallback& status_cb,
+                             const std::string& tf_prefix)
+  : frame_manager_(frame_manager), status_callback_(status_cb), tf_prefix_(tf_prefix)
 {
 }
 
-bool TFLinkUpdater::getLinkTransforms(const std::string& _link_name, Ogre::Vector3& visual_position, Ogre::Quaternion& visual_orientation,
-                                      Ogre::Vector3& collision_position, Ogre::Quaternion& collision_orientation) const
+bool TFLinkUpdater::getLinkTransforms(const std::string& _link_name,
+                                      Ogre::Vector3& visual_position,
+                                      Ogre::Quaternion& visual_orientation,
+                                      Ogre::Vector3& collision_position,
+                                      Ogre::Quaternion& collision_orientation) const
 {
-  std::string link_name = _link_name;
-  if (!tf_prefix_.empty())
-  {
-    link_name = tf::resolve(tf_prefix_, link_name);
-  }
+  std::string link_name = concat(tf_prefix_, _link_name);
 
   Ogre::Vector3 position;
   Ogre::Quaternion orientation;
@@ -75,7 +72,9 @@ bool TFLinkUpdater::getLinkTransforms(const std::string& _link_name, Ogre::Vecto
   return true;
 }
 
-void TFLinkUpdater::setLinkStatus(StatusLevel level, const std::string& link_name, const std::string& text) const
+void TFLinkUpdater::setLinkStatus(StatusLevel level,
+                                  const std::string& link_name,
+                                  const std::string& text) const
 {
   if (status_callback_)
   {
@@ -83,4 +82,4 @@ void TFLinkUpdater::setLinkStatus(StatusLevel level, const std::string& link_nam
   }
 }
 
-}
+} // namespace rviz

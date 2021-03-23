@@ -33,7 +33,7 @@
 
 #include <nav_msgs/Path.h>
 
-#include "rviz/message_filter_display.h"
+#include <rviz/message_filter_display.h>
 #include <rviz/ogre_helpers/arrow.h>
 #include <rviz/ogre_helpers/axes.h>
 
@@ -44,7 +44,6 @@ class ManualObject;
 
 namespace rviz
 {
-
 class ColorProperty;
 class FloatProperty;
 class IntProperty;
@@ -57,22 +56,22 @@ class VectorProperty;
  * \class PathDisplay
  * \brief Displays a nav_msgs::Path message
  */
-class PathDisplay: public MessageFilterDisplay<nav_msgs::Path>
+class PathDisplay : public MessageFilterDisplay<nav_msgs::Path>
 {
-Q_OBJECT
+  Q_OBJECT
 public:
   PathDisplay();
-  virtual ~PathDisplay();
+  ~PathDisplay() override;
 
   /** @brief Overridden from Display. */
-  virtual void reset();
+  void reset() override;
 
 protected:
   /** @brief Overridden from Display. */
-  virtual void onInitialize();
+  void onInitialize() override;
 
   /** @brief Overridden from MessageFilterDisplay. */
-  void processMessage( const nav_msgs::Path::ConstPtr& msg );
+  void processMessage(const nav_msgs::Path::ConstPtr& msg) override;
 
 private Q_SLOTS:
   void updateBufferLength();
@@ -86,15 +85,15 @@ private Q_SLOTS:
 
 private:
   void destroyObjects();
-  void allocateArrowVector(std::vector<rviz::Arrow*>& arrow_vect, int num);
-  void allocateAxesVector(std::vector<rviz::Axes*>& axes_vect, int num);
+  void allocateArrowVector(std::vector<rviz::Arrow*>& arrow_vect, size_t num);
+  void allocateAxesVector(std::vector<rviz::Axes*>& axes_vect, size_t num);
   void destroyPoseAxesChain();
   void destroyPoseArrowChain();
 
   std::vector<Ogre::ManualObject*> manual_objects_;
   std::vector<rviz::BillboardLine*> billboard_lines_;
-  std::vector<std::vector<rviz::Axes*> >axes_chain_;
-  std::vector<std::vector<rviz::Arrow*> >arrow_chain_;
+  std::vector<std::vector<rviz::Axes*> > axes_chain_;
+  std::vector<std::vector<rviz::Arrow*> > arrow_chain_;
 
   EnumProperty* style_property_;
   ColorProperty* color_property_;
@@ -103,7 +102,8 @@ private:
   IntProperty* buffer_length_property_;
   VectorProperty* offset_property_;
 
-  enum LineStyle {
+  enum LineStyle
+  {
     LINES,
     BILLBOARDS
   };
@@ -124,10 +124,8 @@ private:
     AXES,
     ARROWS,
   };
-
 };
 
 } // namespace rviz
 
 #endif /* RVIZ_PATH_DISPLAY_H */
-

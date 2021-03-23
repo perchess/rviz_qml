@@ -29,17 +29,16 @@
 #ifndef MOCK_DISPLAY_H
 #define MOCK_DISPLAY_H
 
-#include "rviz/display.h"
+#include <rviz/display.h>
 
 namespace rviz
 {
-
 class VectorProperty;
 class ColorProperty;
 
-class MockDisplay: public Display
+class MockDisplay : public Display
 {
-Q_OBJECT
+  Q_OBJECT
 public:
   MockDisplay();
 
