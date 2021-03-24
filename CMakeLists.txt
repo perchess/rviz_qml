@@ -133,7 +133,7 @@ find_package(catkin REQUIRED
   cmake_modules
   geometry_msgs
   image_transport
-  interactive_markers2
+  interactive_markers
   laser_geometry
   map_msgs
   message_filters
@@ -214,7 +214,7 @@ catkin_package(
   CATKIN_DEPENDS
     geometry_msgs
     image_transport
-    interactive_markers2
+    interactive_markers
     laser_geometry
     map_msgs
     message_filters
