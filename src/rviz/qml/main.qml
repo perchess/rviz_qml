@@ -38,6 +38,17 @@ ApplicationWindow {
     }
   }
 
+  RvizDisplay {
+    id: gridDisplay
+    property string activeFrame: "world"
+    frame: visualizationFrame
+    classLookupName: "rviz/Grid"
+    name: "Grid"
+    onDisplayCreated: {
+      setPropertyValue("Reference Frame", activeFrame)
+    }
+  }
+
   RvizTools {
     id: tools
     frame: visualizationFrame
@@ -50,7 +61,7 @@ ApplicationWindow {
 
   RvizOptions {
     fixedFrame: "world"
-    backgroundColor: "black"
+    backgroundColor: "white"
     frame: visualizationFrame
   }
 
