@@ -50,6 +50,10 @@ using namespace rviz;
 int main(int argc, char** argv)
 {
   QApplication app(argc, argv);
+
+  // RViz and QtQuick currently only support one render thread
+  qputenv("QSG_RENDER_LOOP", "basic");
+
   ros::init(argc, argv, "quick_render_panel_test");
 
   rviz::QuickVisualizationFrame::registerTypes();
