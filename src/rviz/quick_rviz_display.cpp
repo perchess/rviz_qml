@@ -10,10 +10,12 @@ namespace rviz
 QuickRvizDisplay::QuickRvizDisplay(QObject* parent)
   : QuickRvizObject(parent)
   , created_(false)
+  , enabled_(false)
   , display_(nullptr)
 {
   connect(this, &QuickRvizDisplay::classLookupNameChanged, this, &QuickRvizDisplay::initDisplay);
   connect(this, &QuickRvizDisplay::nameChanged, this, &QuickRvizDisplay::initDisplay);
+  connect(this, &QuickRvizDisplay::enableStateChanged, this, &QuickRvizDisplay::initDisplay);
 }
 
 QuickRvizDisplay::~QuickRvizDisplay()
@@ -36,6 +38,11 @@ bool QuickRvizDisplay::getCreated()
   return created_;
 }
 
+bool QuickRvizDisplay::getEnable()
+{
+  return enabled_;
+}
+
 void QuickRvizDisplay::setClassLookupName(const QString& name)
 {
   if (name == classLookupName_) {
@@ -52,6 +59,18 @@ void QuickRvizDisplay::setName(const QString& name)
   }
   name_ = name;
   Q_EMIT nameChanged(name);
+}
+
+void QuickRvizDisplay::setEnable(bool state)
+{
+  if (state == enabled_)
+    return;
+
+  if (!created_)
+    return;
+
+  enabled_ = state;
+  display_->setEnabled(enabled_);
 }
 
 void QuickRvizDisplay::initialize()
@@ -98,6 +117,7 @@ void QuickRvizDisplay::initDisplay()
   display_ = visManager->createDisplay(classLookupName_, name_, true);
   if (display_) {
     created_ = true;
+    enabled_ = display_->isEnabled();
     Q_EMIT createdChanged(true);
     Q_EMIT displayCreated();
   }
