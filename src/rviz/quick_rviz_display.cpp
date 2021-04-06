@@ -10,12 +10,12 @@ namespace rviz
 QuickRvizDisplay::QuickRvizDisplay(QObject* parent)
   : QuickRvizObject(parent)
   , created_(false)
-  , enabled_(false)
+  , enabled_(true)
   , display_(nullptr)
 {
   connect(this, &QuickRvizDisplay::classLookupNameChanged, this, &QuickRvizDisplay::initDisplay);
   connect(this, &QuickRvizDisplay::nameChanged, this, &QuickRvizDisplay::initDisplay);
-  connect(this, &QuickRvizDisplay::enableStateChanged, this, &QuickRvizDisplay::initDisplay);
+//  connect(this, &QuickRvizDisplay::enableChanged, this, &QuickRvizDisplay::initDisplay);
 }
 
 QuickRvizDisplay::~QuickRvizDisplay()
@@ -40,7 +40,10 @@ bool QuickRvizDisplay::getCreated()
 
 bool QuickRvizDisplay::getEnable()
 {
-  return enabled_;
+  if (!created_)
+    return false;
+
+  return display_->isEnabled();
 }
 
 void QuickRvizDisplay::setClassLookupName(const QString& name)
@@ -66,11 +69,13 @@ void QuickRvizDisplay::setEnable(bool state)
   if (state == enabled_)
     return;
 
+  enabled_ = state;
+
   if (!created_)
     return;
 
-  enabled_ = state;
   display_->setEnabled(enabled_);
+  Q_EMIT enableChanged(state);
 }
 
 void QuickRvizDisplay::initialize()
@@ -114,12 +119,13 @@ void QuickRvizDisplay::initDisplay()
     return;
   }
   const auto visManager = frame->getManager();
-  display_ = visManager->createDisplay(classLookupName_, name_, true);
+  display_ = visManager->createDisplay(classLookupName_, name_, enabled_);
   if (display_) {
     created_ = true;
     enabled_ = display_->isEnabled();
     Q_EMIT createdChanged(true);
     Q_EMIT displayCreated();
+    Q_EMIT enableChanged(enabled_);
   }
 }
 void QuickRvizDisplay::destroy()

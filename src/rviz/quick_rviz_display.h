@@ -18,7 +18,7 @@ class QuickRvizDisplay: public QuickRvizObject
   Q_PROPERTY(QString classLookupName READ getClassLookupName WRITE setClassLookupName NOTIFY classLookupNameChanged)
   Q_PROPERTY(QString name READ getName WRITE setName NOTIFY nameChanged)
   Q_PROPERTY(bool created READ getCreated NOTIFY createdChanged)
-  Q_PROPERTY(bool enable READ getEnable WRITE setEnable NOTIFY enableStateChanged)
+  Q_PROPERTY(bool enable READ getEnable WRITE setEnable NOTIFY enableChanged)
 
 public:
   explicit QuickRvizDisplay(QObject* parent = Q_NULLPTR);
@@ -40,7 +40,7 @@ Q_SIGNALS:
   void nameChanged(const QString &name);
   void createdChanged(bool created);
   void displayCreated();
-  void enableStateChanged(bool enabled);
+  void enableChanged(bool enable);
 
 private Q_SLOTS:
   void initialize() override;
