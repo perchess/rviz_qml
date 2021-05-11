@@ -117,13 +117,9 @@ find_package(OpenGL REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 
-# Добавить папку с доп cmake файлами
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
-
-include(Qt5Configuration)
 
 
-find_package(Qt5 ${QT_VERSION} REQUIRED COMPONENTS Core Widgets Quick OpenGL)
+find_package(Qt5 5.15 REQUIRED COMPONENTS Core Widgets Quick OpenGL)
 set(QT_LIBRARIES Qt5::Widgets Qt5::Quick)
 set(QTVERSION ${Qt5Widgets_VERSION})
 add_definitions(-DQT_NO_KEYWORDS)
