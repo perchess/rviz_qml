@@ -50,6 +50,7 @@ void QuickRvizOptions::setFixedFrame(const QString &frame)
   }
   fixedFrame_ = frame;
   Q_EMIT fixedFrameChanged(frame);
+  updateProperties();
 }
 
 void QuickRvizOptions::setBackgroundColor(const QColor& color)
