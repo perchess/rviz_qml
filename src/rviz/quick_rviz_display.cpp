@@ -139,4 +139,9 @@ void QuickRvizDisplay::destroy()
   display_ = nullptr;
 }
 
+Display* QuickRvizDisplay::getDisplay()
+{
+  return this->display_;
+}
+
 }  // namespace rviz

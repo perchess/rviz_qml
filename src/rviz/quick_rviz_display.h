@@ -28,6 +28,7 @@ public:
   const QString getName();
   bool getCreated();
   bool getEnable();
+  Display* getDisplay();
 
 public Q_SLOTS:
   void setClassLookupName(const QString &name);
