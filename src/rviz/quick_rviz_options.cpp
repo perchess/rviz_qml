@@ -6,6 +6,18 @@
 #include "visualization_manager.h"
 #include "display_group.h"
 
+
+QStringList vectorStringtoQStringList(const std::vector<std::string>& in)
+{
+  QStringList out;
+  for (auto& it: in)
+  {
+    out << QString::fromStdString(it);
+  }
+  return out;
+}
+
+
 namespace rviz
 {
 
@@ -15,6 +27,8 @@ QuickRvizOptions::QuickRvizOptions(QObject *parent)
   , backgroundColor_(QColor("black"))
   , frameRate_(30)
   , defaultLight_(true)
+  , tfBuffer_(new tf2_ros::Buffer())
+  , tfListener_(new tf2_ros::TransformListener(*tfBuffer_))
 {
 
 }
@@ -31,6 +45,12 @@ const QString QuickRvizOptions::getFixedFrame()
 const QColor QuickRvizOptions::getBackgroundColor()
 {
   return backgroundColor_;
+}
+
+const QStringList QuickRvizOptions::getFrameList()
+{
+  frames_Qlist_ = vectorStringtoQStringList(frames_list_);
+  return frames_Qlist_;
 }
 
 int QuickRvizOptions::getFrameRate()
@@ -62,6 +82,16 @@ void QuickRvizOptions::setBackgroundColor(const QColor& color)
   Q_EMIT backgroundColorChanged(color);
 }
 
+void QuickRvizOptions::setFrameList(const QStringList &list)
+{
+  if (list == frames_Qlist_)
+    return;
+
+  frames_Qlist_ = list;
+  Q_EMIT frameListChanged(frames_Qlist_);
+}
+
+
 void QuickRvizOptions::setFrameRate(int fps)
 {
   if (fps == frameRate_) {
@@ -85,6 +115,12 @@ void QuickRvizOptions::initialize()
   initialized_ = true;
   updateProperties();
 }
+
+void QuickRvizOptions::updateFrameList()
+{
+  tfBuffer_->_getFrameStrings(frames_list_);
+}
+
 
 void QuickRvizOptions::updateProperties()
 {

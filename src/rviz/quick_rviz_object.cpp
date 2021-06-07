@@ -19,6 +19,7 @@ QuickRvizObject::~QuickRvizObject()
 
 void QuickRvizObject::initialize()
 {
+
 }
 
 QuickVisualizationFrame* QuickRvizObject::getFrame()
