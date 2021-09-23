@@ -1,5 +1,6 @@
 # Export the Qt version used by rviz.
 set(rviz_QT_VERSION @rviz_QT_VERSION@)
+set(@PROJECT_NAME@_SOURCE_DIR "@PROJECT_SOURCE_DIR@")
 
 # Set the rviz_DEFAULT_PLUGIN_LIBRARIES variable.
 # If the target exists, then this file was included during a cmake invocation

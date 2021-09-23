@@ -197,6 +197,7 @@ catkin_package(
     rviz-extras.cmake
   INCLUDE_DIRS
     src
+    src/test
     ${EXPORT_HEADER_DIR}
     ${EIGEN3_INCLUDE_DIRS}
     ${OGRE_INCLUDE_DIRS}
@@ -243,6 +244,7 @@ include_directories(${SYSTEM}
 #catkin_lint: ignore_once external_directory
 include_directories(src ${EXPORT_HEADER_DIR})
 include_directories(${SYSTEM} ${catkin_INCLUDE_DIRS})
+include_directories(src/test)
 
 #### If gtk ends up being the best way to get the correct window
 #### position under X11, this is how to compile it in.
