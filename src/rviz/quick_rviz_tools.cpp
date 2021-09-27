@@ -46,6 +46,19 @@ bool QuickRvizTools::setCurrentTool(const QString& name)
   return true;
 }
 
+void QuickRvizTools::setPropertyValue(const QString& toolName, const QString& key, const QVariant& value)
+{
+  if (!initialized_)
+    return;
+
+  auto keys = key.split('/');
+  Property* prop = tools_[toolName]->getPropertyContainer();
+  for (const auto &k: keys)
+    prop = prop->subProp(k);
+
+  prop->setValue(value);
+}
+
 void QuickRvizTools::initialize()
 {
   initialized_ = true;

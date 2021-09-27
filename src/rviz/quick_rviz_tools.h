@@ -6,6 +6,7 @@
 #define RVIZ_QUICK_RVIZ_TOOLS_H
 
 #include "quick_rviz_object.h"
+#include "properties/property.h"
 
 #include "tool.h"
 
@@ -25,6 +26,7 @@ public:
 public Q_SLOTS:
   void setToolNames(const QStringList &toolNames);
   bool setCurrentTool(const QString &name);
+  void setPropertyValue(const QString& toolName, const QString& key, const QVariant& value);
 
 Q_SIGNALS:
   void toolNamesChanged();
