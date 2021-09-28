@@ -15,21 +15,25 @@ namespace rviz {
 class QuickRvizTools: public QuickRvizObject
 {
   Q_OBJECT
-  Q_PROPERTY(QStringList toolNames READ getToolNames WRITE setToolNames NOTIFY toolNamesChanged)
+  Q_PROPERTY(QVariantMap toolNames READ getToolNames WRITE setToolNames NOTIFY toolNamesChanged)
+  Q_PROPERTY(QString defaultToolName READ getDefaultTool WRITE setDefaultTool NOTIFY defaultToolChanged)
 
 public:
   explicit QuickRvizTools(QObject* parent = Q_NULLPTR);
   ~QuickRvizTools() override;
 
-  const QStringList getToolNames();
+  const QVariantMap getToolNames();
+  const QString getDefaultTool();
 
 public Q_SLOTS:
-  void setToolNames(const QStringList &toolNames);
+  void setToolNames(const QVariantMap &toolNames);
   bool setCurrentTool(const QString &name);
   void setPropertyValue(const QString& toolName, const QString& key, const QVariant& value);
+  void setDefaultTool(const QString &name);
 
 Q_SIGNALS:
   void toolNamesChanged();
+  void defaultToolChanged();
   void toolsCreated();
 
 private Q_SLOTS:
@@ -39,7 +43,9 @@ private Q_SLOTS:
 private:
   bool initialized_;
   std::map<QString, Tool*> tools_;
-  QStringList toolNames_;
+//  QStringList toolNames_;
+  QVariantMap toolNames_;
+  QString defaultToolName_;
 
   void removeTools();
 };

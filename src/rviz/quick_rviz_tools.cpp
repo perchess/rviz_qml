@@ -21,12 +21,17 @@ QuickRvizTools::~QuickRvizTools()
   removeTools();
 }
 
-const QStringList QuickRvizTools::getToolNames()
+const QVariantMap QuickRvizTools::getToolNames()
 {
-  return toolNames_;
+    return toolNames_;
 }
 
-void QuickRvizTools::setToolNames(const QStringList& toolNames)
+const QString QuickRvizTools::getDefaultTool()
+{
+  return defaultToolName_;
+}
+
+void QuickRvizTools::setToolNames(const QVariantMap& toolNames)
 {
   if (toolNames_ == toolNames) {
     return;
@@ -59,6 +64,23 @@ void QuickRvizTools::setPropertyValue(const QString& toolName, const QString& ke
   prop->setValue(value);
 }
 
+void QuickRvizTools::setDefaultTool(const QString &name)
+{
+    if (defaultToolName_ == name)
+        return;
+    defaultToolName_ = name;
+
+    const auto frame = getFrame();
+    ToolManager* toolManager;
+    if (frame)
+      toolManager = frame->getManager()->getToolManager();
+    if (!toolManager)
+        return;
+
+    toolManager->setDefaultTool(tools_[defaultToolName_]);
+    Q_EMIT defaultToolChanged();
+}
+
 void QuickRvizTools::initialize()
 {
   initialized_ = true;
@@ -88,13 +110,13 @@ void QuickRvizTools::initTools()
   removeTools();
 
   const auto toolManager = getFrame()->getManager()->getToolManager();
-  for (const auto &name: toolNames_) {
-    auto tool = toolManager->addTool(name);
+  for (const auto &mapNode: toolNames_.toStdMap())
+  {
+    auto tool = toolManager->addTool(mapNode.second.toString());
     if (tool) {
-      tools_[name] = tool;
+      tools_[mapNode.first] = tool;
     }
   }
-
   if (!tools_.empty()) {
     Q_EMIT toolsCreated();
   }
